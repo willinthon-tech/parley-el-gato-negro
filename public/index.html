@@ -461,6 +461,7 @@
             height: 100%;
             min-height: 60px;
             max-height: 60px;
+            overflow: hidden;
         }
         
         .event-details {
@@ -898,6 +899,21 @@
             font-weight: 500;
         }
         
+        /* MOBILE LAYOUT - REMOVE GRID FOR MOBILE */
+        @media (max-width: 768px) {
+            .navbar {
+                display: none !important;
+            }
+            
+            .event-card {
+                display: flex !important;
+                flex-direction: column !important;
+                grid-template-columns: none !important;
+                gap: 8px !important;
+                margin-bottom: 20px !important;
+            }
+        }
+        
     </style>
 </head>
 <body>
@@ -905,12 +921,12 @@
         <div class="header">
                 <h1>🏆 Top Eventos Deportivos Camanbet (1255)</h1>
             <div class="filter-buttons">
-                <button class="filter-btn active col-2" onclick="sortByType('date')">Fecha mas recientes</button>
+                <button class="filter-btn active col-2" onclick="sortByType('date')">Recientes</button>
                 <button class="filter-btn col-2" onclick="sortByType('1x2')">1x2 mas bajos</button>
                 <button class="filter-btn col-2" onclick="filterByOddsDifference(6)">diferencia +6</button>
                 <button class="filter-btn col-2" onclick="filterByOddsDifference(12)">Diferencia 12+</button>
                 <button class="filter-btn col-2" onclick="filterByOddsDifference(24)">diferencia +24</button>
-                <button class="filter-btn col-2 ticket-btn" onclick="openTicketModal()">🎫 Ticket</button>
+                <button class="filter-btn col-2 ticket-btn" onclick="openTicketModal()">Ticket</button>
             </div>
         </div>
         
@@ -924,8 +940,8 @@
             <div class="navbar-row">
                 <div class="navbar-item">DESCRIPCION</div>
                 <div class="navbar-item">1X2</div>
-                <div class="navbar-item">DOBLE OPORTUNIDAD</div>
-                <div class="navbar-item">ANALISIS IA</div>
+                <div class="navbar-item">Doble</div>
+                <div class="navbar-item">IA</div>
             </div>
         </div>
         
@@ -1094,7 +1110,7 @@
                                     homeTeam = 'Equipo Local';
                                 }
                                 if (!awayTeam || awayTeam === '') {
-                                    awayTeam = 'Equipo Visitante';
+                                    awayTeam = '';
                                 }
                                 
                                 
@@ -1130,7 +1146,7 @@
                                 if (awayTeam && awayTeam !== '') {
                                     teamsHtml += `<br/>${awayTeam}`;
                                 }
-                                html += `<div class="event-teams">${teamsHtml}</div>`;
+                                html += `<div class="event-teams" title="${teamsHtml.replace(/<br\/>/g, ' ')}">${teamsHtml}</div>`;
                                 html += `</div>`;
                                 
                                 // Mercado 1x2 (Columna 2) - USAR MERCADOS ESPECÍFICOS DEL EVENTO
