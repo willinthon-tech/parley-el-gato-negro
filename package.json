@@ -1,0 +1,23 @@
+{
+  "name": "top-events-demo",
+  "version": "1.0.0",
+  "description": "Top Events Demo - Sports Betting Application",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "cd src && node server.js",
+    "build": "cd src && npm install",
+    "install-deps": "cd src && npm install"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "axios": "^1.6.0",
+    "node-fetch": "^2.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["sports", "betting", "events", "demo"],
+  "author": "willinthon-tech",
+  "license": "MIT"
+}
