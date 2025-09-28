@@ -10,12 +10,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Ruta principal - servir index.html
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    console.log('Intentando servir index.html desde:', indexPath);
+    res.sendFile(indexPath);
 });
 
 // Ruta de fallback para SPA - cualquier ruta no encontrada sirve index.html
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    console.log('Fallback: sirviendo index.html desde:', indexPath);
+    res.sendFile(indexPath);
 });
 
 // Proxy para evitar CORS para la API de eventos
@@ -147,6 +151,17 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);
     console.log(`Aplicación disponible en: http://localhost:${PORT}`);
+    console.log(`Directorio actual (__dirname): ${__dirname}`);
     console.log(`Archivos estáticos servidos desde: ${path.join(__dirname, 'public')}`);
     console.log(`Archivo principal: ${path.join(__dirname, 'public', 'index.html')}`);
+    
+    // Verificar si el archivo existe
+    const fs = require('fs');
+    const indexPath = path.join(__dirname, 'public', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        console.log('✅ index.html encontrado correctamente');
+    } else {
+        console.log('❌ ERROR: index.html NO encontrado en:', indexPath);
+        console.log('Contenido del directorio public:', fs.readdirSync(path.join(__dirname, 'public')));
+    }
 });
