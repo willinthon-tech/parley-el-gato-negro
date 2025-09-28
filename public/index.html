@@ -980,7 +980,6 @@
             content.innerHTML = '<div class="loading">Cargando eventos...</div>';
             
             try {
-                console.log('🔗 Iniciando carga de eventos...');
                 // Using Proxy API to avoid CORS issues
                 const response = await fetch('/api/top-events', {
                     method: 'GET',
@@ -989,26 +988,15 @@
                     }
                 });
                 
-                console.log('📡 Respuesta recibida:', response.status);
                 
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const data = await response.json();
-                console.log('📊 Datos recibidos:', data);
-                console.log('🔍 Estructura de datos:', {
-                    hasEvents: !!data.events,
-                    eventsLength: data.events?.length,
-                    firstEvent: data.events?.[0],
-                    hasDates: !!data.dates,
-                    datesLength: data.dates?.length
-                });
                 allEventsData = data; // Guardar datos globalmente
                 
-                console.log('🎯 Renderizando eventos...');
                 renderEvents(data);
                 // Aplicar ordenamiento por fecha por defecto
                 sortByType('date');
-                console.log('✅ Eventos cargados exitosamente');
             } catch (error) {
                 console.error('❌ Error cargando eventos:', error);
                 content.innerHTML = `<div class="error">Error: ${error.message}</div>`;
@@ -1078,9 +1066,6 @@
                                 // Extraer equipos del nombre del evento
                                 let eventName = eventData.name || `Evento #${eventId}`;
                                 
-                                console.log('🔍 DEBUG renderEvents:');
-                                console.log('  eventData.name original:', eventData.name);
-                                console.log('  eventName antes de limpiar:', eventName);
                                 
                                 // LIMPIEZA DEFINITIVA - remover "vs Equipo Visitante" de cualquier parte
                                 eventName = eventName.replace(/vs\s+Equipo\s+Visitante/gi, '').trim();
@@ -1088,7 +1073,6 @@
                                 eventName = eventName.replace(/vs\.\s+Equipo\s+Visitante/gi, '').trim();
                                 eventName = eventName.replace(/\s+vs\.\s+Equipo\s+Visitante/gi, '').trim();
                                 
-                                console.log('  eventName después de limpiar:', eventName);
                                 
                                 const teams = eventName.split(' vs ').map(team => team.trim());
                                 let homeTeam = teams[0] || '';
@@ -1113,9 +1097,6 @@
                                     awayTeam = 'Equipo Visitante';
                                 }
                                 
-                                console.log('  homeTeam final:', homeTeam);
-                                console.log('  awayTeam final:', awayTeam);
-                                console.log('  eventName final:', eventName);
                                 
                                 // Formatear fecha y hora
                                 let timeStr = '';
@@ -1385,7 +1366,6 @@
                             ];
                             
                             // Debug: Verificar códigos en eventos con error
-                            console.log('Probabilidades error con códigos:', probabilitiesError);
                             
                             // Crear array temporal para determinar colores por valor
                             const sortedProbsError = [...probabilitiesError].sort((a, b) => b.value - a.value);
@@ -1447,16 +1427,6 @@
                             const { homeTeam, awayTeam } = extractTeamNames(eventName);
                             
                             // Debug: verificar startDate del evento real
-                            console.log('🔍 Evento encontrado:', {
-                                id: realEvent.id,
-                                name: eventName,
-                                startDate: realEvent.startDate,
-                                hasStartDate: !!realEvent.startDate,
-                                eventDataCompleto: realEvent,
-                                allKeys: Object.keys(realEvent),
-                                startDateType: typeof realEvent.startDate,
-                                startDateValue: realEvent.startDate
-                            });
                             
                             // USAR LA FECHA REAL DEL EVENTO, NO LA ACTUAL
                             eventData = {
@@ -1467,12 +1437,6 @@
                                 startDate: realEvent.startDate // Usar la fecha real del evento
                             };
                         } else {
-                            console.log('❌ Evento NO encontrado en allEventsData:', {
-                                eventId: eventId,
-                                allEventsDataKeys: Object.keys(allEventsData),
-                                eventsLength: allEventsData.events?.length,
-                                firstEvent: allEventsData.events?.[0]
-                            });
                         }
                     } else {
                         // Si no hay allEventsData, intentar extraer del eventData.name
@@ -3016,14 +2980,6 @@
                     eventData.startDate = realEvent.startDate;
                 }
                 
-                console.log('🚨 DEBUG CRÍTICO - startDate:', {
-                    eventId: eventId,
-                    eventDataStartDate: eventData.startDate,
-                    realEventStartDate: realEvent?.startDate,
-                    realEventName: realEvent?.name,
-                    realEventCompleto: realEvent,
-                    eventDataCompleto: eventData
-                });
                 
                 const ticketItem = {
                     id: `${eventId}_${selection}_${market}`,
@@ -3211,12 +3167,6 @@
                 }
                 
                 // Debug: mostrar las selecciones filtradas
-                console.log('🔍 Selecciones filtradas:', filteredSelections);
-                console.log('🔍 Datos de la API disponibles:', {
-                    events: allEventsData?.events?.length,
-                    markets: allEventsData?.markets?.length,
-                    odds: allEventsData?.odds?.length
-                });
                 
                 // Preparar datos en el formato correcto que espera el servidor externo
                 const betData = {

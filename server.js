@@ -11,14 +11,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Ruta principal - servir index.html
 app.get('/', (req, res) => {
     const indexPath = path.join(__dirname, 'public', 'index.html');
-    console.log('Intentando servir index.html desde:', indexPath);
-    res.sendFile(indexPath);
-});
-
-// Ruta de fallback para SPA - cualquier ruta no encontrada sirve index.html
-app.get('*', (req, res) => {
-    const indexPath = path.join(__dirname, 'public', 'index.html');
-    console.log('Fallback: sirviendo index.html desde:', indexPath);
     res.sendFile(indexPath);
 });
 
@@ -79,10 +71,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
             });
         }
         
-        // Log de datos recibidos del frontend
-        console.log('=== DATOS RECIBIDOS DEL FRONTEND ===');
-        console.log('Formato completo:', JSON.stringify(betData, null, 2));
-        console.log('=====================================');
         
         // El frontend ya envía el formato correcto, solo reenviar al endpoint externo
         const apiPayload = {
@@ -124,10 +112,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
         
         const result = await response.json();
         
-        // Log de la apuesta procesada
-        console.log('=== APUESTA ENVIADA A API REAL ===');
-        console.log('Respuesta de la API:', result);
-        console.log('================================');
         
         // Respuesta exitosa
         res.json({
@@ -139,7 +123,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error procesando apuesta:', error);
         res.status(500).json({ 
             error: 'Error al procesar la apuesta',
             message: error.message,
@@ -148,20 +131,13 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
-    console.log(`Aplicación disponible en: http://localhost:${PORT}`);
-    console.log(`Directorio actual (__dirname): ${__dirname}`);
-    console.log(`Archivos estáticos servidos desde: ${path.join(__dirname, 'public')}`);
-    console.log(`Archivo principal: ${path.join(__dirname, 'public', 'index.html')}`);
-    
-    // Verificar si el archivo existe
-    const fs = require('fs');
+// Ruta de fallback para SPA - cualquier ruta no encontrada sirve index.html
+// DEBE ir al final, después de todas las rutas de API
+app.use((req, res) => {
     const indexPath = path.join(__dirname, 'public', 'index.html');
-    if (fs.existsSync(indexPath)) {
-        console.log('✅ index.html encontrado correctamente');
-    } else {
-        console.log('❌ ERROR: index.html NO encontrado en:', indexPath);
-        console.log('Contenido del directorio public:', fs.readdirSync(path.join(__dirname, 'public')));
-    }
+    res.sendFile(indexPath);
+});
+
+app.listen(PORT, () => {
+    // Servidor iniciado
 });
