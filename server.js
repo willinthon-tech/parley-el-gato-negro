@@ -3,7 +3,7 @@ const path = require('path');
 const fetch = require('node-fetch'); // Added for proxying
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Servir archivos estáticos desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
@@ -140,5 +140,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`Aplicación disponible en: http://localhost:${PORT}`);
 });
