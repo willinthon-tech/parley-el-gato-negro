@@ -941,12 +941,22 @@
                 <button class="filter-btn col-2" onclick="filterByOddsDifference(12)">Diferencia 12+</button>
                 <button class="filter-btn col-2" onclick="filterByOddsDifference(24)">diferencia +24</button>
                 <button class="filter-btn col-2 ticket-btn" onclick="openTicketModal()">Ticket</button>
+                <button class="filter-btn col-2" onclick="generate30Code1x2()">30 Code 1x2</button>
+                <button class="filter-btn col-2" onclick="generate30CodeDoble()">30 code Doble</button>
             </div>
         </div>
         
         <!-- Descripción de filtros -->
         <div style="text-align: center; margin: 10px 0; color: red; font-weight: bold;">
             Filtros +6, +12 y +24 filtran lo siguiente, partidos con esa diferencia de cuotas, que el favorito sea local, y que el analisis de IA tambien concuerde con el resultado
+        </div>
+        
+        <!-- Descripción de botones 30 Code -->
+        <div style="text-align: center; margin: 10px 0; color: #2c3e50; font-weight: bold; background: #ecf0f1; padding: 10px; border-radius: 5px;">
+            <strong>📋 Botones 30 Code:</strong><br>
+            <span style="color: #27ae60; font-weight: bold;">"30 Code 1x2"</span> - Genera automáticamente 30 apuestas de tipo 1x2 (Local, Empate, Visitante) con las cuotas más bajas<br>
+            <span style="color: #3498db; font-weight: bold;">"30 code Doble"</span> - Genera automáticamente 30 apuestas de Doble Oportunidad (1X, 12, 2X) con las cuotas más bajas<br>
+            <small style="color: #7f8c8d;">Ambos botones buscan primero en filtros +24, luego +12, luego +6, y finalmente en todos los eventos ordenados por cuotas más bajas</small>
         </div>
         
         <!-- Navbar sticky -->
@@ -1769,8 +1779,69 @@
                 const data = await response.json();
                 allEventsData = data; // Guardar datos globalmente
                 renderEvents(data);
+                
+                // Verificar si hay eventos para habilitar/deshabilitar botones
+                updateGenerateButtons();
             } catch (error) {
                 content.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                
+                // Deshabilitar botones si hay error
+                disableGenerateButtons();
+            }
+        }
+        
+        // Función para verificar si hay eventos y habilitar/deshabilitar botones
+        function updateGenerateButtons() {
+            const button1x2 = document.querySelector('button[onclick="generate30Code1x2()"]');
+            const buttonDoble = document.querySelector('button[onclick="generate30CodeDoble()"]');
+            
+            if (!allEventsData || !allEventsData.events || allEventsData.events.length === 0) {
+                // No hay eventos, deshabilitar botones
+                if (button1x2) {
+                    button1x2.disabled = true;
+                    button1x2.style.opacity = '0.5';
+                    button1x2.style.cursor = 'not-allowed';
+                    button1x2.title = 'No hay eventos disponibles';
+                }
+                if (buttonDoble) {
+                    buttonDoble.disabled = true;
+                    buttonDoble.style.opacity = '0.5';
+                    buttonDoble.style.cursor = 'not-allowed';
+                    buttonDoble.title = 'No hay eventos disponibles';
+                }
+            } else {
+                // Hay eventos, habilitar botones
+                if (button1x2) {
+                    button1x2.disabled = false;
+                    button1x2.style.opacity = '1';
+                    button1x2.style.cursor = 'pointer';
+                    button1x2.title = 'Generar código con 30 apuestas 1x2';
+                }
+                if (buttonDoble) {
+                    buttonDoble.disabled = false;
+                    buttonDoble.style.opacity = '1';
+                    buttonDoble.style.cursor = 'pointer';
+                    buttonDoble.title = 'Generar código con 30 apuestas Doble Oportunidad';
+                }
+            }
+        }
+        
+        // Función para deshabilitar botones de generación
+        function disableGenerateButtons() {
+            const button1x2 = document.querySelector('button[onclick="generate30Code1x2()"]');
+            const buttonDoble = document.querySelector('button[onclick="generate30CodeDoble()"]');
+            
+            if (button1x2) {
+                button1x2.disabled = true;
+                button1x2.style.opacity = '0.5';
+                button1x2.style.cursor = 'not-allowed';
+                button1x2.title = 'No hay eventos disponibles';
+            }
+            if (buttonDoble) {
+                buttonDoble.disabled = true;
+                buttonDoble.style.opacity = '0.5';
+                buttonDoble.style.cursor = 'not-allowed';
+                buttonDoble.title = 'No hay eventos disponibles';
             }
         }
 
@@ -2865,6 +2936,722 @@
             return filteredData;
         }
 
+        // Función para generar código 30 Code 1x2
+        async function generate30Code1x2() {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Cambiar estado activo del botón
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Mostrar estado de carga
+            button.textContent = 'Generando...';
+            button.disabled = true;
+            
+            try {
+                if (!allEventsData) {
+                    throw new Error('No hay datos de eventos disponibles');
+                }
+                
+                let events1x2 = [];
+                let totalFound = 0;
+                
+                // Paso 1: Buscar eventos con diferencia +24
+                let selectedEvents = await filterEventsByOddsDifference(allEventsData, 24);
+                let events1x2_24 = await extract1x2Events(selectedEvents);
+                events1x2 = [...events1x2_24];
+                totalFound = events1x2.length;
+                
+                // Si ya tenemos 30, no buscar más
+                if (totalFound >= 30) {
+                    events1x2 = events1x2.slice(0, 30);
+                } else {
+                    // Paso 2: Buscar en +12
+                    const events12 = await filterEventsByOddsDifference(allEventsData, 12);
+                    const events1x2_12 = await extract1x2Events(events12);
+                    
+                    // Agregar solo los que no estén ya incluidos
+                    const existingIds = new Set(events1x2.map(e => e.id));
+                    const newEvents12 = events1x2_12.filter(e => !existingIds.has(e.id));
+                    events1x2 = [...events1x2, ...newEvents12];
+                    totalFound = events1x2.length;
+                    
+                    // Si ya tenemos 30, no buscar más
+                    if (totalFound >= 30) {
+                        events1x2 = events1x2.slice(0, 30);
+                    } else {
+                        // Paso 3: Buscar en +6
+                        const events6 = await filterEventsByOddsDifference(allEventsData, 6);
+                        const events1x2_6 = await extract1x2Events(events6);
+                        
+                        // Agregar solo los que no estén ya incluidos
+                        const existingIds6 = new Set(events1x2.map(e => e.id));
+                        const newEvents6 = events1x2_6.filter(e => !existingIds6.has(e.id));
+                        events1x2 = [...events1x2, ...newEvents6];
+                        totalFound = events1x2.length;
+                        
+                        // Si ya tenemos 30, no buscar más
+                        if (totalFound >= 30) {
+                            events1x2 = events1x2.slice(0, 30);
+                        } else {
+                            // Paso 4: Buscar en todos los eventos (cuotas más bajas)
+                            const allEvents1x2 = await extract1x2Events(allEventsData);
+                            const existingIdsAll = new Set(events1x2.map(e => e.id));
+                            const remainingEvents = allEvents1x2.filter(e => !existingIdsAll.has(e.id));
+                            
+                            // Ordenar por cuota más baja
+                            const sortedByOdds = remainingEvents.sort((a, b) => {
+                                const oddsA = getLowestOdds(a);
+                                const oddsB = getLowestOdds(b);
+                                return oddsA - oddsB;
+                            });
+                            
+                            const needed = 30 - events1x2.length;
+                            const newEventsAll = sortedByOdds.slice(0, needed);
+                            events1x2 = [...events1x2, ...newEventsAll];
+                            totalFound = events1x2.length;
+                        }
+                    }
+                }
+                
+                // Verificar si tenemos eventos
+                if (totalFound === 0) {
+                    throw new Error('No se encontraron eventos para generar el código');
+                }
+                
+                // Tomar solo los primeros 30 (o todos si hay menos de 30)
+                const finalEvents = events1x2.slice(0, 30);
+                
+                // Generar código real del servidor usando la misma lógica del ticket
+                const code = await generateRealServerCode(finalEvents, '1x2');
+                
+                // Copiar al portapapeles
+                await navigator.clipboard.writeText(code);
+                
+                // Mostrar mensaje de éxito
+                button.textContent = '¡Código copiado!';
+                button.style.background = '#4CAF50';
+                button.style.color = 'white';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error generando código:', error);
+                button.textContent = 'Error';
+                button.style.background = '#f44336';
+                button.style.color = 'white';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
+
+        // Función para generar código 30 code Doble
+        async function generate30CodeDoble() {
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            // Cambiar estado activo del botón
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            button.classList.add('active');
+            
+            // Mostrar estado de carga
+            button.textContent = 'Generando...';
+            button.disabled = true;
+            
+            try {
+                if (!allEventsData) {
+                    throw new Error('No hay datos de eventos disponibles');
+                }
+                
+                let eventsDoble = [];
+                let totalFound = 0;
+                
+                // Paso 1: Buscar eventos con diferencia +24
+                let selectedEvents = await filterEventsByOddsDifference(allEventsData, 24);
+                let eventsDoble_24 = await extractDobleEvents(selectedEvents);
+                eventsDoble = [...eventsDoble_24];
+                totalFound = eventsDoble.length;
+                
+                // Si ya tenemos 30, no buscar más
+                if (totalFound >= 30) {
+                    eventsDoble = eventsDoble.slice(0, 30);
+                } else {
+                    // Paso 2: Buscar en +12
+                    const events12 = await filterEventsByOddsDifference(allEventsData, 12);
+                    const eventsDoble_12 = await extractDobleEvents(events12);
+                    
+                    // Agregar solo los que no estén ya incluidos
+                    const existingIds = new Set(eventsDoble.map(e => e.id));
+                    const newEvents12 = eventsDoble_12.filter(e => !existingIds.has(e.id));
+                    eventsDoble = [...eventsDoble, ...newEvents12];
+                    totalFound = eventsDoble.length;
+                    
+                    // Si ya tenemos 30, no buscar más
+                    if (totalFound >= 30) {
+                        eventsDoble = eventsDoble.slice(0, 30);
+                    } else {
+                        // Paso 3: Buscar en +6
+                        const events6 = await filterEventsByOddsDifference(allEventsData, 6);
+                        const eventsDoble_6 = await extractDobleEvents(events6);
+                        
+                        // Agregar solo los que no estén ya incluidos
+                        const existingIds6 = new Set(eventsDoble.map(e => e.id));
+                        const newEvents6 = eventsDoble_6.filter(e => !existingIds6.has(e.id));
+                        eventsDoble = [...eventsDoble, ...newEvents6];
+                        totalFound = eventsDoble.length;
+                        
+                        // Si ya tenemos 30, no buscar más
+                        if (totalFound >= 30) {
+                            eventsDoble = eventsDoble.slice(0, 30);
+                        } else {
+                            // Paso 4: Buscar en todos los eventos (cuotas más bajas)
+                            const allEventsDoble = await extractDobleEvents(allEventsData);
+                            const existingIdsAll = new Set(eventsDoble.map(e => e.id));
+                            const remainingEvents = allEventsDoble.filter(e => !existingIdsAll.has(e.id));
+                            
+                            // Ordenar por cuota más baja
+                            const sortedByOdds = remainingEvents.sort((a, b) => {
+                                const oddsA = getLowestOdds(a);
+                                const oddsB = getLowestOdds(b);
+                                return oddsA - oddsB;
+                            });
+                            
+                            const needed = 30 - eventsDoble.length;
+                            const newEventsAll = sortedByOdds.slice(0, needed);
+                            eventsDoble = [...eventsDoble, ...newEventsAll];
+                            totalFound = eventsDoble.length;
+                        }
+                    }
+                }
+                
+                // Verificar si tenemos eventos
+                if (totalFound === 0) {
+                    throw new Error('No se encontraron eventos para generar el código');
+                }
+                
+                // Tomar solo los primeros 30 (o todos si hay menos de 30)
+                const finalEvents = eventsDoble.slice(0, 30);
+                
+                // Generar código real del servidor usando la misma lógica del ticket
+                const code = await generateRealServerCode(finalEvents, 'doble');
+                
+                // Copiar al portapapeles
+                await navigator.clipboard.writeText(code);
+                
+                // Mostrar mensaje de éxito
+                button.textContent = '¡Código copiado!';
+                button.style.background = '#4CAF50';
+                button.style.color = 'white';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.disabled = false;
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Error generando código:', error);
+                
+                // Mostrar mensaje de error en rojo
+                button.textContent = 'Sin eventos';
+                button.style.background = '#f44336';
+                button.style.color = 'white';
+                
+                // Restaurar botón después de 3 segundos
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '';
+                    button.style.color = '';
+                    button.disabled = false;
+                }, 3000);
+            }
+        }
+
+        // Función auxiliar para generar código aleatorio
+        function generateRandomCode(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Función para extraer eventos 1x2 de los datos filtrados
+        async function extract1x2Events(data) {
+            const events = [];
+            
+            if (!data.dates) return events;
+            
+            for (const dateGroup of data.dates) {
+                const eventIds = dateGroup.eventIds || [];
+                
+                for (const eventId of eventIds) {
+                    const eventData = data.events?.find(e => e.id == eventId);
+                    if (eventData && eventData.marketIds && eventData.marketIds.length > 0) {
+                        // Buscar mercado 1x2
+                        let market1x2 = null;
+                        for (const marketId of eventData.marketIds) {
+                            const market = data.markets?.find(m => m.id === marketId);
+                            if (market && (market.typeId === 1 || market.name?.toLowerCase() === '1x2')) {
+                                market1x2 = market;
+                                break;
+                            }
+                        }
+                        
+                        if (market1x2 && market1x2.oddIds && data.odds) {
+                            const oddIds = market1x2.oddIds;
+                            const local = data.odds.find(o => o.id === oddIds[0]);
+                            const draw = data.odds.find(o => o.id === oddIds[1]);
+                            const away = data.odds.find(o => o.id === oddIds[2]);
+                            
+                            if (local && draw && away) {
+                                const event = {
+                                    id: eventData.id,
+                                    name: eventData.name,
+                                    local: local.price,
+                                    draw: draw.price,
+                                    away: away.price,
+                                    market: market1x2
+                                };
+                                
+                                // Solo agregar si tiene cuotas válidas
+                                if (hasValidOdds(event)) {
+                                    events.push(event);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return events;
+        }
+
+        // Función para extraer eventos Doble Oportunidad de los datos filtrados
+        async function extractDobleEvents(data) {
+            const events = [];
+            
+            if (!data.dates) return events;
+            
+            for (const dateGroup of data.dates) {
+                const eventIds = dateGroup.eventIds || [];
+                
+                for (const eventId of eventIds) {
+                    const eventData = data.events?.find(e => e.id == eventId);
+                    if (eventData && eventData.marketIds && eventData.marketIds.length > 0) {
+                        // Buscar mercado Doble Oportunidad
+                        let marketDoble = null;
+                        for (const marketId of eventData.marketIds) {
+                            const market = data.markets?.find(m => m.id === marketId);
+                            if (market && (market.typeId === 2 || market.name?.toLowerCase().includes('doble'))) {
+                                marketDoble = market;
+                                break;
+                            }
+                        }
+                        
+                        if (marketDoble && marketDoble.oddIds && data.odds) {
+                            const oddIds = marketDoble.oddIds;
+                            const option1 = data.odds.find(o => o.id === oddIds[0]);
+                            const option2 = data.odds.find(o => o.id === oddIds[1]);
+                            const option3 = data.odds.find(o => o.id === oddIds[2]);
+                            
+                            if (option1 && option2 && option3) {
+                                const event = {
+                                    id: eventData.id,
+                                    name: eventData.name,
+                                    option1: option1.price,
+                                    option2: option2.price,
+                                    option3: option3.price,
+                                    market: marketDoble
+                                };
+                                
+                                // Solo agregar si tiene cuotas válidas
+                                if (hasValidOdds(event)) {
+                                    events.push(event);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return events;
+        }
+
+        // Función para obtener la cuota más baja de un evento
+        function getLowestOdds(event) {
+            let odds = [];
+            
+            // Para eventos 1x2
+            if (event.local !== undefined && event.draw !== undefined && event.away !== undefined) {
+                odds = [event.local, event.draw, event.away];
+            }
+            // Para eventos doble oportunidad
+            else if (event.option1 !== undefined && event.option2 !== undefined && event.option3 !== undefined) {
+                odds = [event.option1, event.option2, event.option3];
+            }
+            
+            // Filtrar cuotas válidas (mayores a 0 y no nulas/undefined)
+            const validOdds = odds.filter(odd => {
+                if (odd === null || odd === undefined) return false;
+                const numOdd = parseFloat(odd);
+                return !isNaN(numOdd) && numOdd > 0;
+            });
+            
+            return validOdds.length > 0 ? Math.min(...validOdds) : 999;
+        }
+        
+        // Función para verificar si un evento tiene cuotas válidas
+        function hasValidOdds(event) {
+            // Para eventos 1x2
+            if (event.local !== undefined && event.draw !== undefined && event.away !== undefined) {
+                const local = parseFloat(event.local);
+                const draw = parseFloat(event.draw);
+                const away = parseFloat(event.away);
+                
+                return !isNaN(local) && local > 0 && 
+                       !isNaN(draw) && draw > 0 && 
+                       !isNaN(away) && away > 0;
+            }
+            // Para eventos doble oportunidad
+            else if (event.option1 !== undefined && event.option2 !== undefined && event.option3 !== undefined) {
+                const option1 = parseFloat(event.option1);
+                const option2 = parseFloat(event.option2);
+                const option3 = parseFloat(event.option3);
+                
+                return !isNaN(option1) && option1 > 0 && 
+                       !isNaN(option2) && option2 > 0 && 
+                       !isNaN(option3) && option3 > 0;
+            }
+            
+            return false;
+        }
+
+        // Función para generar código real del servidor - COPIA EXACTA DE PLACEBET
+        async function generateRealServerCode(events, type) {
+            try {
+                // Validar que no excedamos 30 eventos
+                if (events.length > 30) {
+                    events = events.slice(0, 30);
+                }
+                
+                // Crear selecciones usando la MISMA lógica que placeBet
+                const filteredSelections = events.map((event, index) => {
+                    // Obtener el evento real de la API
+                    const realEvent = allEventsData?.events?.find(e => e.id == event.id);
+                    
+                    let selection = '1';
+                    let odds = event.local;
+                    
+                    if (type === '1x2') {
+                        // Para 1x2, seleccionar la cuota más baja
+                        if (event.draw < event.local && event.draw < event.away) {
+                            selection = 'X';
+                            odds = event.draw;
+                        } else if (event.away < event.local && event.away < event.draw) {
+                            selection = '2';
+                            odds = event.away;
+                        }
+                    } else if (type === 'doble') {
+                        // Para doble oportunidad, seleccionar la opción con cuota más baja
+                        // Verificar que las cuotas de doble oportunidad existan
+                        if (event.option1 !== undefined && event.option2 !== undefined && event.option3 !== undefined) {
+                            if (event.option1 < event.option2 && event.option1 < event.option3) {
+                                selection = '1X';
+                                odds = event.option1;
+                            } else if (event.option2 < event.option1 && event.option2 < event.option3) {
+                                selection = '12';
+                                odds = event.option2;
+                            } else if (event.option3 < event.option1 && event.option3 < event.option2) {
+                                selection = '2X';
+                                odds = event.option3;
+                            }
+                        } else {
+                            // Si no hay cuotas de doble oportunidad, saltar este evento
+                            return null;
+                        }
+                        
+                        // Validar que odds no sea undefined
+                        if (odds === undefined || odds === null) {
+                            return null;
+                        }
+                    }
+                    
+                    // Validar que odds sea un número válido
+                    if (odds === undefined || odds === null || isNaN(parseFloat(odds))) {
+                        odds = type === 'doble' ? (event.option1 || event.option2 || event.option3 || 1.0) : (event.local || event.draw || event.away || 1.0);
+                    }
+                    
+                    // Extraer nombres de equipos
+                    const eventName = event.name || 'Evento';
+                    const { homeTeam, awayTeam } = extractTeamNames(eventName);
+                    
+                    // Asegurar que odds sea un número válido antes de toFixed
+                    const validOdds = parseFloat(odds);
+                    const finalOdds = isNaN(validOdds) || validOdds <= 0 ? 1.0 : validOdds;
+                    
+                    return {
+                        eventId: event.id,
+                        selection: selection,
+                        odds: finalOdds.toFixed(2),
+                        market: type === '1x2' ? '1X2' : 'Doble Oportunidad',
+                        homeTeam: homeTeam,
+                        awayTeam: awayTeam,
+                        eventName: eventName,
+                        startDate: realEvent?.startDate || new Date().toISOString(),
+                        teams: awayTeam ? `${homeTeam} vs ${awayTeam}` : homeTeam
+                    };
+                }).filter(selection => selection !== null); // Filtrar eventos null
+                
+                // Verificar que tengamos selecciones válidas
+                if (filteredSelections.length === 0) {
+                    throw new Error('No se encontraron eventos válidos de Doble Oportunidad');
+                }
+                
+                // USAR EXACTAMENTE LA MISMA ESTRUCTURA QUE PLACEBET
+                const betData = {
+                    culture: "es-ES",
+                    timezoneOffset: 240,
+                    integration: "camanbet",
+                    deviceType: 1,
+                    numFormat: "en-GB",
+                    countryCode: "VE",
+                    betslip: JSON.stringify({
+                        stakes: [{
+                            value: 10,
+                            preciseValue: 10,
+                            type: 3,
+                            isEnabled: true,
+                            isHighlighted: false
+                        }],
+                        selections: filteredSelections.map((item, index) => {
+                            // Obtener el evento real de la API
+                            const realEvent = allEventsData?.events?.find(e => e.id == item.eventId);
+                            
+                            // Determinar typeId basado en la selección
+                            let typeId = 1; // Por defecto Local
+                            if (item.selection === 'X') typeId = 2; // Empate
+                            if (item.selection === '2') typeId = 3; // Visitante
+                            // Para doble oportunidad, usar typeId correctos del servidor
+                            if (item.selection === '1X') typeId = 9; // Local o Empate (Doble Oportunidad)
+                            if (item.selection === '12') typeId = 10; // Local o Visitante (Doble Oportunidad)
+                            if (item.selection === '2X') typeId = 11; // Visitante o Empate (Doble Oportunidad)
+                            
+                            // Determinar si es doble oportunidad basado en la selección
+                            const isDoubleChance = item.selection === '1X' || item.selection === '12' || item.selection === '2X';
+                            
+                            // Limpiar nombres de equipos antes de usarlos - limpieza agresiva
+                            let cleanHomeTeam = cleanTeamName(item.homeTeam || '');
+                            let cleanAwayTeam = cleanTeamName(item.awayTeam || '');
+                            
+                            // Si los nombres están vacíos después de limpiar, intentar extraerlos del teams
+                            if (!cleanHomeTeam || !cleanAwayTeam) {
+                                const teamsString = item.teams || '';
+                                const teams = teamsString.split(' vs ').map(team => cleanTeamName(team.trim()));
+                                if (teams.length >= 2) {
+                                    cleanHomeTeam = teams[0] || 'Equipo Local';
+                                    cleanAwayTeam = teams[1] || 'Equipo Visitante';
+                                }
+                            }
+                            
+                            // Si después de todo esto quedan vacíos, usar fallbacks
+                            if (!cleanHomeTeam) cleanHomeTeam = 'Equipo Local';
+                            if (!cleanAwayTeam) cleanAwayTeam = 'Equipo Visitante';
+                            
+                            // Determinar el nombre del equipo para el odd
+                            let oddName = cleanHomeTeam;
+                            if (item.selection === 'X') oddName = 'Empate';
+                            if (item.selection === '2') oddName = cleanAwayTeam;
+                            if (item.selection === '1X') oddName = `${cleanHomeTeam} o Empate`;
+                            if (item.selection === '12') oddName = `${cleanHomeTeam} o ${cleanAwayTeam}`;
+                            if (item.selection === '2X') oddName = `${cleanAwayTeam} o Empate`;
+                            
+                            return {
+                                odd: {
+                                    typeId: typeId,
+                                    price: parseFloat(item.odds),
+                                    isMB: false,
+                                    oddStatus: 0,
+                                    id: (() => {
+                                        // Buscar el odd real en los datos de la API
+                                        if (realEvent && realEvent.marketIds) {
+                                            for (const marketId of realEvent.marketIds) {
+                                                const market = allEventsData?.markets?.find(m => m.id === marketId);
+                                                if (market && market.oddIds) {
+                                                    // Buscar el odd que coincida con la selección y cuota
+                                                    for (const oddId of market.oddIds) {
+                                                        const odd = allEventsData?.odds?.find(o => o.id === oddId);
+                                                        if (odd && Math.abs(parseFloat(odd.price) - parseFloat(item.odds)) < 0.01) {
+                                                            return oddId;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        // Si no se encuentra, usar un ID por defecto
+                                        return 2906367496 + index;
+                                    })(),
+                                    name: oddName,
+                                    lineDir: 1,
+                                    priceDir: 1,
+                                    shouldUpdate: false,
+                                    sportMarketId: 1
+                                },
+                                event: {
+                                    id: parseInt(item.eventId),
+                                    name: cleanAwayTeam ? `${cleanHomeTeam} vs. ${cleanAwayTeam}` : cleanHomeTeam,
+                                    isParlay: false,
+                                    rc: false,
+                                    startDate: item.startDate,
+                                    code: realEvent?.code || 4207,
+                                    et: 0
+                                },
+                                // Agregar objeto market que nos faltaba - ESTO ES LO QUE FALTABA
+                                market: {
+                                    typeId: isDoubleChance ? 10 : 1, // 10 = Doble oportunidad, 1 = 1X2
+                                    name: isDoubleChance ? 'Doble oportunidad' : '1X2',
+                                    id: isDoubleChance ? 1182665762 : (realEvent?.marketIds?.[0] || 1182665762), // ID del mercado real
+                                    oddIds: [2906367496 + index], // IDs de las cuotas
+                                    isMB: false,
+                                    sportMarketId: isDoubleChance ? 70495 : 70472 // 70495 = Doble oportunidad, 70472 = 1X2
+                                },
+                                status: 0,
+                                isBanker: false,
+                                isEnabled: true,
+                                sport: {
+                                    typeId: 1,
+                                    iconName: "soccer",
+                                    hasLiveEvents: false,
+                                    id: 66,
+                                    name: "Fútbol"
+                                },
+                                competitors: realEvent?.competitorIds ? [
+                                    { id: realEvent.competitorIds[0], name: cleanHomeTeam },
+                                    { id: realEvent.competitorIds[1], name: cleanAwayTeam }
+                                ] : [
+                                    { id: 1, name: cleanHomeTeam },
+                                    { id: 2, name: cleanAwayTeam }
+                                ],
+                                country: {
+                                    iso: "ESP",
+                                    hasLiveEvents: false,
+                                    id: 501,
+                                    name: "España"
+                                },
+                                market: isDoubleChance ? {
+                                    shortName: "Doble oportunidad",
+                                    desktopOddIds: [[1182665762], [1182665763], [1182665764]],
+                                    mobileOddIds: [[1182665762], [1182665763], [1182665764]],
+                                    isBB: false,
+                                    so: 0,
+                                    typeId: 10,
+                                    isMB: false,
+                                    sportMarketId: 70495,
+                                    id: 1182665762,
+                                    name: "Doble oportunidad"
+                                } : (realEvent?.marketIds ? {
+                                    shortName: "1x2",
+                                    desktopOddIds: realEvent.marketIds.map(id => [id]),
+                                    mobileOddIds: realEvent.marketIds.map(id => [id]),
+                                    isBB: false,
+                                    so: 0,
+                                    typeId: 1,
+                                    isMB: false,
+                                    sportMarketId: 70472,
+                                    id: realEvent.marketIds[0] || 1187219288,
+                                    name: "1x2"
+                                } : {
+                                    shortName: "1x2",
+                                    desktopOddIds: [[2906367496], [2906367497], [2906367498]],
+                                    mobileOddIds: [[2906367496], [2906367497], [2906367498]],
+                                    isBB: false,
+                                    so: 0,
+                                    typeId: 1,
+                                    isMB: false,
+                                    sportMarketId: 70472,
+                                    id: 1187219288,
+                                    name: "1x2"
+                                }),
+                                widgetInfo: {
+                                    widget: 12,
+                                    sportId: 66,
+                                    marketId: isDoubleChance ? 1182665762 : (realEvent?.marketIds?.[0] || 1187219288),
+                                    eventId: parseInt(item.eventId),
+                                    oddId: 2906367496 + index
+                                }
+                            };
+                        })
+                    })
+                };
+                
+                
+                // Enviar datos al endpoint del servidor
+                const response = await fetch('/api/place-bet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(betData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                // Devolver el código real del servidor
+                return result.apiResponse?.Result?.ReservationKey || 'ERROR_GENERATING_CODE';
+                
+            } catch (error) {
+                console.error('Error generando código real:', error);
+                throw error;
+            }
+        }
+
+        // Función para generar código basado en eventos (mantener para compatibilidad)
+        function generateCodeFromEvents(events, type) {
+            let code = '';
+            
+            for (const event of events) {
+                if (type === '1x2') {
+                    // Para 1x2, tomar la cuota más baja
+                    const lowestOdds = getLowestOdds(event);
+                    const oddsStr = lowestOdds.toFixed(2).replace('.', '');
+                    code += oddsStr;
+                } else if (type === 'doble') {
+                    // Para doble oportunidad, tomar la cuota más baja de las opciones dobles
+                    const lowestOdds = getLowestOdds(event);
+                    const oddsStr = lowestOdds.toFixed(2).replace('.', '');
+                    code += oddsStr;
+                }
+            }
+            
+            // Si el código es muy largo, truncarlo
+            if (code.length > 30) {
+                code = code.substring(0, 30);
+            }
+            
+            return code;
+        }
+
         // Función para verificar si la predicción de IA favorece al equipo local
         async function checkAIPredictionMatchesLocal(eventData) {
             try {
@@ -3307,7 +4094,8 @@
                                     name: oddName,
                                     lineDir: 1,
                                     priceDir: 1,
-                                    shouldUpdate: false
+                                    shouldUpdate: false,
+                                    sportMarketId: 1
                                 },
                                 event: {
                                     id: parseInt(item.eventId),
