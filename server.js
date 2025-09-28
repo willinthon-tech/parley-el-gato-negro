@@ -8,8 +8,13 @@ const PORT = process.env.PORT || 3000;
 // Servir archivos estáticos desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ruta principal
+// Ruta principal - servir index.html
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Ruta de fallback para SPA - cualquier ruta no encontrada sirve index.html
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -142,4 +147,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en puerto ${PORT}`);
     console.log(`Aplicación disponible en: http://localhost:${PORT}`);
+    console.log(`Archivos estáticos servidos desde: ${path.join(__dirname, 'public')}`);
+    console.log(`Archivo principal: ${path.join(__dirname, 'public', 'index.html')}`);
 });
