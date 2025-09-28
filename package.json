@@ -2,11 +2,10 @@
   "name": "top-events-demo",
   "version": "1.0.0",
   "description": "Top Events Demo - Sports Betting Application",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "cd src && node server.js",
-    "build": "cd src && npm install",
-    "install-deps": "cd src && npm install"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
