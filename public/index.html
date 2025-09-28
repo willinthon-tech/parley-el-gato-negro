@@ -581,6 +581,20 @@
             color: white;
         }
         
+        /* Estilos para botones con cuota 0.00 */
+        .odd-btn.disabled {
+            opacity: 0.4 !important;
+            cursor: not-allowed !important;
+            background: #f5f5f5 !important;
+            color: #999 !important;
+            pointer-events: none !important;
+        }
+        
+        .odd-btn.disabled:hover {
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
         .odd-value {
             font-weight: bold;
             font-size: 0.9rem;
@@ -1174,9 +1188,17 @@
                                    
 
                                     // Usar datos reales de la API
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="1" data-odds="${local?.price?.toFixed(2) || 'N/A'}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${local?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">1</div></button>`;
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="X" data-odds="${draw?.price?.toFixed(2) || 'N/A'}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${draw?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">X</div></button>`;
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="2" data-odds="${away?.price?.toFixed(2) || 'N/A'}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${away?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">2</div></button>`;
+                                    const localOdds = local?.price?.toFixed(2) || 'N/A';
+                                    const drawOdds = draw?.price?.toFixed(2) || 'N/A';
+                                    const awayOdds = away?.price?.toFixed(2) || 'N/A';
+                                    
+                                    const localDisabled = localOdds === '0.00' ? ' disabled' : '';
+                                    const drawDisabled = drawOdds === '0.00' ? ' disabled' : '';
+                                    const awayDisabled = awayOdds === '0.00' ? ' disabled' : '';
+                                    
+                                    html += `<button class="odd-btn${localDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="1" data-odds="${localOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${localOdds}</div><div class="odd-label">1</div></button>`;
+                                    html += `<button class="odd-btn${drawDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="X" data-odds="${drawOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${drawOdds}</div><div class="odd-label">X</div></button>`;
+                                    html += `<button class="odd-btn${awayDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="2" data-odds="${awayOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${awayOdds}</div><div class="odd-label">2</div></button>`;
                                 } else {
                                     // Si no hay datos de la API, mostrar N/A
                                     html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">1</div></button>`;
@@ -1218,9 +1240,17 @@
                                   
                                     
                                     // Usar datos reales de la API
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="1X" data-odds="${option1?.price?.toFixed(2) || 'N/A'}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option1?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">1X</div></button>`;
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="12" data-odds="${option2?.price?.toFixed(2) || 'N/A'}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option2?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">12</div></button>`;
-                                    html += `<button class="odd-btn" data-event-id="${eventData.id || 'event'}" data-selection="2X" data-odds="${option3?.price?.toFixed(2) || 'N/A'}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option3?.price?.toFixed(2) || 'N/A'}</div><div class="odd-label">2X</div></button>`;
+                                    const option1Odds = option1?.price?.toFixed(2) || 'N/A';
+                                    const option2Odds = option2?.price?.toFixed(2) || 'N/A';
+                                    const option3Odds = option3?.price?.toFixed(2) || 'N/A';
+                                    
+                                    const option1Disabled = option1Odds === '0.00' ? ' disabled' : '';
+                                    const option2Disabled = option2Odds === '0.00' ? ' disabled' : '';
+                                    const option3Disabled = option3Odds === '0.00' ? ' disabled' : '';
+                                    
+                                    html += `<button class="odd-btn${option1Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="1X" data-odds="${option1Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option1Odds}</div><div class="odd-label">1X</div></button>`;
+                                    html += `<button class="odd-btn${option2Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="12" data-odds="${option2Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option2Odds}</div><div class="odd-label">12</div></button>`;
+                                    html += `<button class="odd-btn${option3Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="2X" data-odds="${option3Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option3Odds}</div><div class="odd-label">2X</div></button>`;
                                 } else {
                                     // Si no hay datos de la API, mostrar N/A
                                     html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">1X</div></button>`;
@@ -1423,6 +1453,11 @@
             // Agregar event listeners a los botones de cuotas
             document.querySelectorAll('.odd-btn').forEach(button => {
                 button.addEventListener('click', function() {
+                    // No permitir clicks en botones deshabilitados
+                    if (this.classList.contains('disabled')) {
+                        return;
+                    }
+                    
                     const eventId = this.getAttribute('data-event-id');
                     const selection = this.getAttribute('data-selection');
                     const odds = this.getAttribute('data-odds');
@@ -1495,6 +1530,8 @@
             switch(market) {
                 case '1X2':
                     return '1x2';
+                case 'Doble Oportunidad':
+                    return 'Doble Oportunidad';
                 case 'DOBLE_OPORTUNIDAD':
                     return 'Doble Oportunidad';
                 default:
@@ -3013,7 +3050,7 @@
                     // Agregar información del equipo seleccionado
                     selectedTeam: getSelectedTeamName(selection, homeTeam, awayTeam),
                     // Agregar información de mercado
-                    marketType: getMarketType(market),
+                    marketType: market === 'Doble Oportunidad' ? 'Doble Oportunidad' : getMarketType(market),
                     // Solo incluir EN VIVO si realmente está en vivo
                     isLive: eventData.isLive || false
                 };
@@ -3208,9 +3245,13 @@
                             let typeId = 1; // Por defecto Local
                             if (item.selection === 'X') typeId = 2; // Empate
                             if (item.selection === '2') typeId = 3; // Visitante
-                            if (item.selection === '1X') typeId = 1; // Local o Empate
-                            if (item.selection === '12') typeId = 1; // Local o Visitante
-                            if (item.selection === '2X') typeId = 3; // Visitante o Empate
+                            // Para doble oportunidad, usar typeId correctos del servidor
+                            if (item.selection === '1X') typeId = 9; // Local o Empate (Doble Oportunidad)
+                            if (item.selection === '12') typeId = 10; // Local o Visitante (Doble Oportunidad)
+                            if (item.selection === '2X') typeId = 11; // Visitante o Empate (Doble Oportunidad)
+                            
+                            // Determinar si es doble oportunidad basado en la selección
+                            const isDoubleChance = item.selection === '1X' || item.selection === '12' || item.selection === '2X';
                             
                             // Limpiar nombres de equipos antes de usarlos - limpieza agresiva
                             let cleanHomeTeam = cleanTeamName(item.homeTeam || '');
@@ -3234,9 +3275,9 @@
                             let oddName = cleanHomeTeam;
                             if (item.selection === 'X') oddName = 'Empate';
                             if (item.selection === '2') oddName = cleanAwayTeam;
-                            if (item.selection === '1X') oddName = cleanHomeTeam;
-                            if (item.selection === '12') oddName = cleanHomeTeam;
-                            if (item.selection === '2X') oddName = cleanAwayTeam;
+                            if (item.selection === '1X') oddName = `${cleanHomeTeam} o Empate`;
+                            if (item.selection === '12') oddName = `${cleanHomeTeam} o ${cleanAwayTeam}`;
+                            if (item.selection === '2X') oddName = `${cleanAwayTeam} o Empate`;
                             
                             return {
                                 odd: {
@@ -3277,6 +3318,15 @@
                                     code: realEvent?.code || 4207,
                                     et: 0
                                 },
+                                // Agregar objeto market que nos faltaba
+                                market: {
+                                    typeId: isDoubleChance ? 10 : 1, // 10 = Doble oportunidad, 1 = 1X2
+                                    name: isDoubleChance ? 'Doble oportunidad' : '1X2',
+                                    id: isDoubleChance ? 1182665762 : (realEvent?.marketIds?.[0] || 1182665762), // ID del mercado real
+                                    oddIds: [2906367496 + index], // IDs de las cuotas
+                                    isMB: false,
+                                    sportMarketId: isDoubleChance ? 70495 : 70472 // 70495 = Doble oportunidad, 70472 = 1X2
+                                },
                                 status: 0,
                                 isBanker: false,
                                 isEnabled: true,
@@ -3314,7 +3364,18 @@
                                     id: 501,
                                     name: "España"
                                 },
-                                market: realEvent?.marketIds ? {
+                                market: isDoubleChance ? {
+                                    shortName: "Doble oportunidad",
+                                    desktopOddIds: [[1182665762], [1182665763], [1182665764]],
+                                    mobileOddIds: [[1182665762], [1182665763], [1182665764]],
+                                    isBB: false,
+                                    so: 0,
+                                    typeId: 10,
+                                    isMB: false,
+                                    sportMarketId: 70495,
+                                    id: 1182665762,
+                                    name: "Doble oportunidad"
+                                } : (realEvent?.marketIds ? {
                                     shortName: "1x2",
                                     desktopOddIds: realEvent.marketIds.map(id => [id]),
                                     mobileOddIds: realEvent.marketIds.map(id => [id]),
@@ -3336,7 +3397,7 @@
                                     sportMarketId: 70472,
                                     id: 1187219288,
                                     name: "1x2"
-                                },
+                                }),
                                 widgetInfo: {
                                     widget: 12,
                                     page: 3,
