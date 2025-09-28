@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: top-events-demo
+    env: node
+    plan: free
+    rootDir: src
+    buildCommand: npm install
+    startCommand: node server.js
