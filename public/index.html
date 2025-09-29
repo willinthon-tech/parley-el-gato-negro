@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Demo Top Events - v3.0 - CACHE BUST</title>
+    <title>Camanbet - Triunfobet</title>
     <style>
         body { 
             font-family: system-ui, -apple-system, sans-serif; 
@@ -933,7 +933,8 @@
 <body>
     <div class="container">
         <div class="header">
-                <h1>🏆 Top Eventos Deportivos Camanbet (1255)</h1>
+                <h1>Camanbet - Triunfobet (0)</h1>
+                
             <div class="filter-buttons">
                 <button class="filter-btn active col-2" onclick="sortByType('date')">Recientes</button>
                 <button class="filter-btn col-2" onclick="sortByType('1x2')">1x2 mas bajos</button>
@@ -946,6 +947,10 @@
             </div>
         </div>
         
+        <!-- Descripción de filtros -->
+        <div style="text-align: center; margin: 10px 0; color: blue; font-weight: bold;">
+            3 Dias de Eventos sincronizados ( Hoy, Mañana y Pasado Mañana ... )
+        </div>
         <!-- Descripción de filtros -->
         <div style="text-align: center; margin: 10px 0; color: red; font-weight: bold;">
             Filtros +6, +12 y +24 filtran lo siguiente, partidos con esa diferencia de cuotas, que el favorito sea local, y que el analisis de IA tambien concuerde con el resultado
@@ -1077,7 +1082,7 @@
             // Actualizar el título con el número de eventos
             const titleElement = document.querySelector('h1');
             if (titleElement) {
-                titleElement.textContent = `🏆 Top Eventos Deportivos Camanbet (${totalEvents})`;
+                titleElement.textContent = `Camanbet - Triunfobet (${totalEvents})`;
             }
             
             
@@ -1202,18 +1207,22 @@
                                     const drawOdds = draw?.price?.toFixed(2) || 'N/A';
                                     const awayOdds = away?.price?.toFixed(2) || 'N/A';
                                     
-                                    const localDisabled = localOdds === '0.00' ? ' disabled' : '';
-                                    const drawDisabled = drawOdds === '0.00' ? ' disabled' : '';
-                                    const awayDisabled = awayOdds === '0.00' ? ' disabled' : '';
+                                    const localDisabled = (localOdds === '0.00' || localOdds === 'N/A') ? ' disabled' : '';
+                                    const drawDisabled = (drawOdds === '0.00' || drawOdds === 'N/A') ? ' disabled' : '';
+                                    const awayDisabled = (awayOdds === '0.00' || awayOdds === 'N/A') ? ' disabled' : '';
                                     
-                                    html += `<button class="odd-btn${localDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="1" data-odds="${localOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${localOdds}</div><div class="odd-label">1</div></button>`;
-                                    html += `<button class="odd-btn${drawDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="X" data-odds="${drawOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${drawOdds}</div><div class="odd-label">X</div></button>`;
-                                    html += `<button class="odd-btn${awayDisabled}" data-event-id="${eventData.id || 'event'}" data-selection="2" data-odds="${awayOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${awayOdds}</div><div class="odd-label">2</div></button>`;
+                                    const localDisabledAttr = (localOdds === '0.00' || localOdds === 'N/A') ? ' disabled' : '';
+                                    const drawDisabledAttr = (drawOdds === '0.00' || drawOdds === 'N/A') ? ' disabled' : '';
+                                    const awayDisabledAttr = (awayOdds === '0.00' || awayOdds === 'N/A') ? ' disabled' : '';
+                                    
+                                    html += `<button class="odd-btn${localDisabled}"${localDisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="1" data-odds="${localOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${localOdds}</div><div class="odd-label">1</div></button>`;
+                                    html += `<button class="odd-btn${drawDisabled}"${drawDisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="X" data-odds="${drawOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${drawOdds}</div><div class="odd-label">X</div></button>`;
+                                    html += `<button class="odd-btn${awayDisabled}"${awayDisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="2" data-odds="${awayOdds}" data-market="1X2" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${awayOdds}</div><div class="odd-label">2</div></button>`;
                                 } else {
                                     // Si no hay datos de la API, mostrar N/A
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">1</div></button>`;
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">X</div></button>`;
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">2</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">1</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">X</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">2</div></button>`;
                                 }
                                 
                                 html += `</div>`;
@@ -1254,18 +1263,22 @@
                                     const option2Odds = option2?.price?.toFixed(2) || 'N/A';
                                     const option3Odds = option3?.price?.toFixed(2) || 'N/A';
                                     
-                                    const option1Disabled = option1Odds === '0.00' ? ' disabled' : '';
-                                    const option2Disabled = option2Odds === '0.00' ? ' disabled' : '';
-                                    const option3Disabled = option3Odds === '0.00' ? ' disabled' : '';
+                                    const option1Disabled = (option1Odds === '0.00' || option1Odds === 'N/A') ? ' disabled' : '';
+                                    const option2Disabled = (option2Odds === '0.00' || option2Odds === 'N/A') ? ' disabled' : '';
+                                    const option3Disabled = (option3Odds === '0.00' || option3Odds === 'N/A') ? ' disabled' : '';
                                     
-                                    html += `<button class="odd-btn${option1Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="1X" data-odds="${option1Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option1Odds}</div><div class="odd-label">1X</div></button>`;
-                                    html += `<button class="odd-btn${option2Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="12" data-odds="${option2Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option2Odds}</div><div class="odd-label">12</div></button>`;
-                                    html += `<button class="odd-btn${option3Disabled}" data-event-id="${eventData.id || 'event'}" data-selection="2X" data-odds="${option3Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option3Odds}</div><div class="odd-label">2X</div></button>`;
+                                    const option1DisabledAttr = (option1Odds === '0.00' || option1Odds === 'N/A') ? ' disabled' : '';
+                                    const option2DisabledAttr = (option2Odds === '0.00' || option2Odds === 'N/A') ? ' disabled' : '';
+                                    const option3DisabledAttr = (option3Odds === '0.00' || option3Odds === 'N/A') ? ' disabled' : '';
+                                    
+                                    html += `<button class="odd-btn${option1Disabled}"${option1DisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="1X" data-odds="${option1Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option1Odds}</div><div class="odd-label">1X</div></button>`;
+                                    html += `<button class="odd-btn${option2Disabled}"${option2DisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="12" data-odds="${option2Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option2Odds}</div><div class="odd-label">12</div></button>`;
+                                    html += `<button class="odd-btn${option3Disabled}"${option3DisabledAttr} data-event-id="${eventData.id || 'event'}" data-selection="2X" data-odds="${option3Odds}" data-market="Doble Oportunidad" data-home-team="${homeTeam}" data-away-team="${awayTeam}" data-event-name="${eventName}"><div class="odd-value">${option3Odds}</div><div class="odd-label">2X</div></button>`;
                                 } else {
                                     // Si no hay datos de la API, mostrar N/A
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">1X</div></button>`;
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">12</div></button>`;
-                                    html += `<button class="odd-btn"><div class="odd-value">N/A</div><div class="odd-label">2X</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">1X</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">12</div></button>`;
+                                    html += `<button class="odd-btn disabled" disabled><div class="odd-value">N/A</div><div class="odd-label">2X</div></button>`;
                                 }
                                 
                                 html += `</div>`;
@@ -3328,7 +3341,8 @@
                 
                 return !isNaN(local) && local > 0 && 
                        !isNaN(draw) && draw > 0 && 
-                       !isNaN(away) && away > 0;
+                       !isNaN(away) && away > 0 &&
+                       event.local !== 'N/A' && event.draw !== 'N/A' && event.away !== 'N/A';
             }
             // Para eventos doble oportunidad
             else if (event.option1 !== undefined && event.option2 !== undefined && event.option3 !== undefined) {
@@ -3338,7 +3352,8 @@
                 
                 return !isNaN(option1) && option1 > 0 && 
                        !isNaN(option2) && option2 > 0 && 
-                       !isNaN(option3) && option3 > 0;
+                       !isNaN(option3) && option3 > 0 &&
+                       event.option1 !== 'N/A' && event.option2 !== 'N/A' && event.option3 !== 'N/A';
             }
             
             return false;
