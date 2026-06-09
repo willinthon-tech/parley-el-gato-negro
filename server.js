@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 // Servir archivos estáticos desde la carpeta public
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
 
 // Ruta principal - servir index.html
 app.get('/', (req, res) => {
@@ -14,101 +15,240 @@ app.get('/', (req, res) => {
     res.sendFile(indexPath);
 });
 
-// Proxy para evitar CORS para la API de eventos - CON FILTRO DE 3 DÍAS
+// Proxy para evitar CORS - BARRIDO DINÁMICO MULTIDEPORTE + NORMALIZADOR DE CUOTAS
 app.get('/api/top-events', async (req, res) => {
     try {
-        console.log('🔄 Obteniendo data del servidor principal...');
+        console.log('🔄 Iniciando barrido dinámico de deportes en Altenar...');
         
-        // Obtener data completa del servidor principal
-        const response = await fetch('https://sb2frontend-altenar2.biahosted.com/api/widget/GetCouponEvents?culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE&playerRegDate=2025-09-24T15%3A32%3A12.67&eventCount=0&sportId=66&couponType=8', {
-            method: 'GET',
-            headers: {
-                'accept': '*/*',
-                'accept-language': 'es-ES,es;q=0.9',
-                'authorization': 'V2xoc1MyRkhTa2haTW14UVlWVndTbFpZY0VwTlZUVndVMWhPU21Kc1NURlpNRTVLVG10c2NtTkdhRmRSTUc4MVRHMVdOVk51UW1wUk1Hc3lVMWR3Ums1Vk1VUk9SRTVPWVZSU05GUlZVa3BrVlRGeFVsaGtTbUZZWkhCWGEyTTFaRVpzV0dKSVZrcGhiVGx3V1ZWb1UwMUhUa2xVVkZwTlpWUnNjVmRXWTNoaFIwcHdUbFJLYUZkRlJuQlVSVTVMWTBkS2RWVnRlR0ZOTUhCdldrVmtjMlJ0U25CVFZGcEtZbFUxYjFsc1pFZGtWbXgwVm1wQ1NtRllaSEJhUm1oUFlrZE9jbEp0TldGV2VsVjNVMWR3ZG1GV1VsaFBWRnBvVmpOb2VsZFdUVFJOVlhoeFVWZGtURkp0VW5kWmJURlRaRzFSZWxSWFpGVmlSa1p1VkZaU1FtUlZNVVZqTW1SWFRXMTRNVlJ0Y0ZKT01HeEpXbnBLVDFFeWRHNVZWbWhEWkRKS1NGWnNhR0ZXTUhCTldWWm9VbVJyTlZWVVZFNU5ZV3N3ZVZOVlRtOVVSazVIVldzMVZWRXpaRzVaYTJSelkyeHdWRkZyYUdGV01EVjVXVzVzY2xveFJYbGhTR3hwVFdwR2MxUkljRVpOUlRGRVRraGtUV0ZyUmpGVVZVNURWa1pzV0ZkdGFHcGlWM1F5Vkd4U1RrMHdlSEZVVkVwS1lWaGtjRmxxVGs1aFZUbHdVMjFPU21KSFVuZFpiVEZUWkcxUmVsUnRUa3BoVld4NlUxY3hWMDVIVGtSVFZGcE9Wa2ROZUZRd1VuSk5hekZGVkZoc1QxTkVRWFZOYlRWdVdtcGtNbFJGVGtsaU1IYzFXbGRrVkdSV1FYaFVNbEpNWWpGV2VsTXpRbXBhVlZZMFpGaEdVRk13YkZaUFV6RlpZVWRWZDA1QlBUMD0=',
-                'dnt': '1',
-                'origin': 'https://caman.vip',
-                'priority': 'u=1, i',
-                'referer': 'https://caman.vip/',
-                'sec-ch-ua': '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
-                'sec-ch-ua-mobile': '?0',
-                'sec-ch-ua-platform': '"Windows"',
-                'sec-fetch-dest': 'empty',
-                'sec-fetch-mode': 'cors',
-                'sec-fetch-site': 'cross-site',
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+        const headers = {
+            'accept': '*/*',
+            'accept-language': 'es-ES,es;q=0.9',
+            'authorization': 'V2xoc1MyRkhTa2haTW14UVlWVndTbFpZY0VwTlZUVndVMWhPU21Kc1NURlpNRTVLVG10c2NtTkdhRmRSTUc4MVRHMVdOVk51UW1wUk1Hc3lVMWR3Ums1Vk1VUk9SRTVPWVZSU05GUlZVa3BrVlRGeFVsaGtTbUZZWkhCWGEyTTFaRVpzV0dKSVZrcGhiVGx3V1ZWb1UwMUhUa2xVVkZwTlpWUnNjVmRXWTNoaFIwcHdUbFJLYUZkRlJuQlVSVTVMWTBkS2RWVnRlR0ZOTUhCdldrVmtjMlJ0U25CVFZGcEtZbFUxYjFsc1pFZGtWbXgwVm1wQ1NtRllaSEJhUm1oUFlrZE9jbEp0TldGV2VsVjNVMWR3ZG1GV1VsaFBWRnBvVmpOb2VsZFdUVFJOVlhoeFVWZGtURkp0VW5kWmJURlRaRzFSZWxSWFpGVmlSa1p1VkZaU1FtUlZNVVZqTW1SWFRXMTRNVlJ0Y0ZKT01HeEpXbnBLVDFFeWRHNVZWbWhEWkRKS1NGWnNhR0ZXTUhCTldWWm9VbVJyTlZWVVZFNU5ZV3N3ZVZOVlRtOVVSazVIVldzMVZWRXpaRzVaYTJSelkyeHdWRkZyYUdGV01EVjVXVzVzY2xveFJYbGhTR3hwVFdwR2MxUkljRVpOUlRGRVRraGtUV0ZyUmpGVVZVNURWa1pzV0ZkdGFHcGlWM1F5Vkd4U1RrMHdlSEZVVkVwS1lWaGtjRmxxVGs1aFZUbHdVMjFPU21KSFVuZFpiVEZUWkcxUmVsUnRUa3BoVld4NlUxY3hWMDVIVGtSVFZGcE9Wa2ROZUZRd1VuSk5hekZGVkZoc1QxTkVRWFZOYlRWdVdtcGtNbFJGVGtsaU1IYzFXbGRrVkdSV1FYaFVNbEpNWWpGV2VsTXpRbXBhVlZZMFpGaEdVRk13YkZaUFV6RlpZVWRWZDA1QlBUMD0=',
+            'dnt': '1',
+            'origin': 'https://caman.vip',
+            'priority': 'u=1, i',
+            'referer': 'https://caman.vip/',
+            'sec-ch-ua': '"Chromium";v="140", "Not=A?Brand";v="24", "Google Chrome";v="140"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'cross-site',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
+        };
+
+        // 1. OBTENER LA LISTA DINÁMICA DE DEPORTES ACTIVOS
+        const menuUrl = 'https://sb2frontend-altenar2.biahosted.com/api/widget/GetTopSportMenu?culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE';
+        const menuResponse = await fetch(menuUrl, { method: 'GET', headers });
+        let sportIds = [66, 67, 76, 68, 70, 75]; // Fallback por defecto
+        
+        if (menuResponse.ok) {
+            const menuData = await menuResponse.json();
+            if (menuData && menuData.topSports) {
+                sportIds = menuData.topSports.map(sport => sport.id);
+            }
+        }
+
+        // Mapas para fusionar TODOS los datos sin duplicados
+        const eventMap = new Map();
+        const marketMap = new Map();
+        const oddMap = new Map();
+        const dateMap = new Map();
+        const competitorMap = new Map();
+
+        const processData = (data) => {
+            if (!data) return;
+            if (data.events) data.events.forEach(e => eventMap.set(e.id, e));
+            if (data.markets) data.markets.forEach(m => marketMap.set(m.id, m));
+            if (data.odds) data.odds.forEach(o => oddMap.set(o.id, o));
+            if (data.competitors) data.competitors.forEach(c => competitorMap.set(c.id, c));
+            
+            if (data.dates) {
+                data.dates.forEach(d => {
+                    if (!dateMap.has(d.dateTime)) {
+                        dateMap.set(d.dateTime, { dateTime: d.dateTime, eventIds: new Set() });
+                    }
+                    d.eventIds.forEach(id => dateMap.get(d.dateTime).eventIds.add(id));
+                });
+            }
+        };
+
+        // 2. HACER BARRIDO DE EVENTOS POR CADA DEPORTE (En Vivo y Próximos)
+        const fetchPromises = sportIds.map(async (sportId) => {
+            const liveUrl = `https://sb2frontend-altenar2.biahosted.com/api/widget/GetLivenow?culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE&eventCount=0&sportId=${sportId}`;
+            const upcomingUrl = `https://sb2frontend-altenar2.biahosted.com/api/widget/GetCouponEvents?culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE&playerRegDate=2025-09-24T15%3A32%3A12.67&eventCount=0&sportId=${sportId}&couponType=8`;
+            
+            try {
+                const [liveRes, upcomingRes] = await Promise.all([
+                    fetch(liveUrl, { method: 'GET', headers }).catch(() => null),
+                    fetch(upcomingUrl, { method: 'GET', headers }).catch(() => null)
+                ]);
+
+                if (liveRes && liveRes.ok) {
+                    const liveData = await liveRes.json().catch(() => null);
+                    processData(liveData);
+                }
+                
+                if (upcomingRes && upcomingRes.ok) {
+                    const upcomingData = await upcomingRes.json().catch(() => null);
+                    processData(upcomingData);
+                }
+            } catch (err) {
+                console.error(`Error procesando deporte ID ${sportId}:`, err.message);
+            }
+        });
+
+        await Promise.all(fetchPromises);
+
+        const combinedData = {
+            events: Array.from(eventMap.values()),
+            markets: Array.from(marketMap.values()),
+            odds: Array.from(oddMap.values()),
+            competitors: Array.from(competitorMap.values()),
+            dates: []
+        };
+
+        console.log(`📊 Data total extraída: ${combinedData.events.length} eventos en todos los deportes.`);
+        
+        // =========================================================
+        // 3. NORMALIZADOR INTELIGENTE DE CUOTAS PARA EL FRONTEND
+        // Evita que las cuotas de Béisbol y Baloncesto se desordenen
+        // =========================================================
+        console.log('🔧 Normalizando mercados para el frontend...');
+        
+        combinedData.markets.forEach(market => {
+            const mName = market.name?.toLowerCase() || '';
+            
+            // Detectar si es un mercado de Ganador o 1x2 (fútbol, béisbol, basket, etc.)
+            const isWinnerMarket = market.typeId === 1 || market.typeId === 11 || 
+                                   mName.includes('ganador') || 
+                                   mName.includes('money line') ||
+                                   mName.includes('moneyline') ||
+                                   mName === '1x2';
+                                   
+            if (isWinnerMarket) {
+                market.typeId = 1; // Forzar para que el HTML lo encuentre
+                
+                let id1 = null, idX = null, id2 = null;
+                
+                // Buscar qué cuota es cuál (Local=1, Empate=2, Visitante=3)
+                market.oddIds.forEach(oddId => {
+                    const odd = combinedData.odds.find(o => o.id === oddId);
+                    if (odd) {
+                        if (odd.typeId === 1) id1 = oddId;
+                        else if (odd.typeId === 2) idX = oddId;
+                        else if (odd.typeId === 3) id2 = oddId;
+                    }
+                });
+                
+                // Si el deporte (ej. Béisbol) manda las cuotas sin un typeId específico, asumimos por orden
+                if (!id1 && !idX && !id2 && market.oddIds.length > 0) {
+                    id1 = market.oddIds[0];
+                    if (market.oddIds.length > 1) id2 = market.oddIds[market.oddIds.length - 1];
+                }
+                
+                // INYECCIÓN: Rellenar vacíos con cuotas falsas 0.00 para mantener las 3 columnas del HTML intactas
+                if (!id1) {
+                    const f = 7770000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 1, price: 0.00, name: "1" });
+                    id1 = f;
+                }
+                if (!idX) {
+                    const f = 7771000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 2, price: 0.00, name: "X" });
+                    idX = f;
+                }
+                if (!id2) {
+                    const f = 7772000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 3, price: 0.00, name: "2" });
+                    id2 = f;
+                }
+                
+                // Forzar el orden exacto que espera index.html: [Local, Empate, Visitante]
+                market.oddIds = [id1, idX, id2];
+            }
+            
+            // Detectar si es Doble Oportunidad
+            const isDoubleChance = market.typeId === 2 || market.typeId === 10 || 
+                                   mName.includes('doble') || mName.includes('double');
+                                   
+            if (isDoubleChance) {
+                market.typeId = 2; // Forzar para HTML
+                
+                let id1X = null, id12 = null, id2X = null;
+                
+                market.oddIds.forEach(oddId => {
+                    const odd = combinedData.odds.find(o => o.id === oddId);
+                    if (odd) {
+                        if (odd.typeId === 9) id1X = oddId;
+                        else if (odd.typeId === 10) id12 = oddId;
+                        else if (odd.typeId === 11) id2X = oddId;
+                    }
+                });
+                
+                // Fallback por orden si no hay typeId
+                if (!id1X && !id12 && !id2X && market.oddIds.length >= 3) {
+                    id1X = market.oddIds[0];
+                    id12 = market.oddIds[1];
+                    id2X = market.oddIds[2];
+                }
+                
+                // Rellenar vacíos con 0.00
+                if (!id1X) {
+                    const f = 8880000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 9, price: 0.00, name: "1X" });
+                    id1X = f;
+                }
+                if (!id12) {
+                    const f = 8881000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 10, price: 0.00, name: "12" });
+                    id12 = f;
+                }
+                if (!id2X) {
+                    const f = 8882000000 + market.id;
+                    combinedData.odds.push({ id: f, typeId: 11, price: 0.00, name: "2X" });
+                    id2X = f;
+                }
+                
+                market.oddIds = [id1X, id12, id2X];
+            }
+        });
+
+        // =========================================================
+        // FILTRO ESTRICTO: SOLO EL DÍA EN CURSO (HOY)
+        // =========================================================
+        console.log('🔍 Aplicando filtro: SOLO PARTIDOS DE HOY...');
+        
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        
+        Array.from(dateMap.values()).forEach(dateGroup => {
+            if (!dateGroup.dateTime) return;
+            
+            const eventDate = new Date(dateGroup.dateTime);
+            
+            // Validamos que el partido esté EXCLUSIVAMENTE dentro de hoy
+            if (eventDate >= todayStart && eventDate <= todayEnd) {
+                combinedData.dates.push({
+                    dateTime: dateGroup.dateTime,
+                    eventIds: Array.from(dateGroup.eventIds)
+                });
             }
         });
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        const totalEvents = combinedData.dates.reduce((sum, dateGroup) => sum + (dateGroup.eventIds?.length || 0), 0);
+        console.log(`🎉 Filtro aplicado: ${totalEvents} eventos para el DÍA EN CURSO.`);
         
-        const data = await response.json();
-        console.log('📊 Data recibida del servidor principal');
-        
-        // APLICAR FILTRO DE 3 DÍAS
-        console.log('🔍 Aplicando filtro de 3 días...');
-        
-        // Calcular fechas límite (HOY + MAÑANA + PASADO MAÑANA)
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const dayAfterTomorrow = new Date(today);
-        dayAfterTomorrow.setDate(today.getDate() + 2);
-        
-        // Establecer límites de tiempo (00:00:00 a 23:59:59)
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-        const dayAfterTomorrowEnd = new Date(dayAfterTomorrow.getFullYear(), dayAfterTomorrow.getMonth(), dayAfterTomorrow.getDate(), 23, 59, 59);
-        
-        console.log(`📅 Filtro: ${todayStart.toISOString()} hasta ${dayAfterTomorrowEnd.toISOString()}`);
-        
-        // Filtrar dates que estén dentro del rango de 3 días
-        if (data.dates && Array.isArray(data.dates)) {
-            const filteredDates = data.dates.filter(dateGroup => {
-                if (!dateGroup.dateTime) return false;
-                
-                const eventDate = new Date(dateGroup.dateTime);
-                const isWithinRange = eventDate >= todayStart && eventDate <= dayAfterTomorrowEnd;
-                
-                if (isWithinRange) {
-                    console.log(`✅ Fecha incluida: ${dateGroup.dateTime} (${eventDate.toLocaleDateString('es-ES')})`);
-                } else {
-                    console.log(`❌ Fecha excluida: ${dateGroup.dateTime} (${eventDate.toLocaleDateString('es-ES')})`);
-                }
-                
-                return isWithinRange;
-            });
-            
-            // Crear data filtrada
-            const filteredData = {
-                ...data,
-                dates: filteredDates
-            };
-            
-            const totalEvents = filteredDates.reduce((sum, dateGroup) => sum + (dateGroup.eventIds?.length || 0), 0);
-            console.log(`🎉 Filtro aplicado: ${totalEvents} eventos de ${filteredDates.length} fechas (3 días)`);
-            
-            // Mostrar resumen de fechas filtradas
-            filteredDates.forEach((dateGroup, index) => {
-                const eventCount = dateGroup.eventIds?.length || 0;
-                const dateStr = new Date(dateGroup.dateTime).toLocaleDateString('es-ES');
-                console.log(`📊 ${dateStr}: ${eventCount} eventos`);
-            });
-            
-            res.json(filteredData);
-        } else {
-            console.log('⚠️ No hay dates en la data recibida');
-            res.json(data);
-        }
+        res.json(combinedData);
         
     } catch (error) {
-        console.error('❌ Error:', error);
+        console.error('❌ Error general:', error);
         res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
 
-// Endpoint para obtener detalles de un evento específico
+// Endpoint para obtener detalles de un evento específico (INTACTO)
 app.get('/api/event-details/:eventId', async (req, res) => {
     const eventId = req.params.eventId;
     const upstream = `https://sb2frontend-altenar2.biahosted.com/api/widget/GetEventDetails?eventId=${eventId}&culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE`;
@@ -141,12 +281,11 @@ app.get('/api/event-details/:eventId', async (req, res) => {
     }
 });
 
-// Endpoint para procesar apuestas - Proxy al endpoint real
+// Endpoint para procesar apuestas - Proxy al endpoint real (INTACTO)
 app.post('/api/place-bet', express.json(), async (req, res) => {
     try {
         const betData = req.body;
         
-        // Validar datos recibidos - nuevo formato
         if (!betData.betslip) {
             return res.status(400).json({ 
                 error: 'Datos de apuesta inválidos',
@@ -154,7 +293,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
             });
         }
         
-        // Validar que el betslip no esté vacío
         if (!betData.betslip || betData.betslip.length === 0) {
             return res.status(400).json({ 
                 error: 'Datos de apuesta inválidos',
@@ -162,8 +300,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
             });
         }
         
-        
-        // El frontend ya envía el formato correcto, solo reenviar al endpoint externo
         const apiPayload = {
             culture: betData.culture || "es-ES",
             timezoneOffset: betData.timezoneOffset || 240,
@@ -174,7 +310,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
             betslip: betData.betslip
         };
         
-        // Enviar petición al endpoint real
         const response = await fetch('https://sb2betslip-altenar2.biahosted.com/api/Betslip/reserveBet', {
             method: 'POST',
             headers: {
@@ -203,8 +338,6 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
         
         const result = await response.json();
         
-        
-        // Respuesta exitosa
         res.json({
             success: true,
             transactionId: result.transactionId || `TXN_${Date.now()}`,
@@ -222,13 +355,12 @@ app.post('/api/place-bet', express.json(), async (req, res) => {
     }
 });
 
-// Ruta de fallback para SPA - cualquier ruta no encontrada sirve index.html
-// DEBE ir al final, después de todas las rutas de API
+// Ruta de fallback para SPA
 app.use((req, res) => {
     const indexPath = path.join(__dirname, 'public', 'index.html');
     res.sendFile(indexPath);
 });
 
 app.listen(PORT, () => {
-    // Servidor iniciado
+    console.log(`✅ Servidor iniciado en puerto ${PORT}`);
 });
