@@ -96,7 +96,7 @@
             color: white;
         }
 
-        /* ESTILO PARA EL NUEVO BOTON DE 30 CUOTAS */
+        /* ESTILO PARA EL BOTON DE 30 CUOTAS BAJAS */
         .filter-btn.magic-btn {
             background: #dc3545;
             border-color: #dc3545;
@@ -107,6 +107,20 @@
         .filter-btn.magic-btn:hover {
             background: #c82333;
             border-color: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* ESTILO PARA EL BOTON DE 30 CUOTAS ALTAS */
+        .filter-btn.magic-btn-high {
+            background: #fd7e14; /* Naranja */
+            border-color: #fd7e14;
+            color: white;
+            font-weight: bold;
+        }
+
+        .filter-btn.magic-btn-high:hover {
+            background: #e36209;
+            border-color: #e36209;
             transform: translateY(-1px);
         }
         
@@ -398,7 +412,10 @@
                 <button class="filter-btn active" onclick="sortByType('date')">Recientes</button>
                 <button class="filter-btn" onclick="sortByType('1x2')">Cuotas más bajas</button>
                 <button class="filter-btn ticket-btn" onclick="openTicketModal()">Mi Ticket</button>
-                <button class="filter-btn magic-btn" onclick="generate30SafestCode(this)">30 cuotas mas bajas</button>
+                
+                <button class="filter-btn magic-btn" onclick="generate30SafestCode(this, 'asc')">30 cuotas más bajas</button>
+                
+                <button class="filter-btn magic-btn-high" onclick="generate30SafestCode(this, 'desc')">30 cuotas más altas</button>
             </div>
             
             <div style="text-align: center; margin: 10px 0; color: blue; font-weight: bold;">
@@ -451,8 +468,8 @@
         let allEventsData = null;
         let ticketSelections = [];
 
-        // 1. EL BOTON MAGICO: Genera el ticket automático de 30 cuotas seguras
-        async function generate30SafestCode(btnElement) {
+        // LA LOGICA MATEMATICA DE ORDENAMIENTO DE CUOTAS
+        async function generate30SafestCode(btnElement, sortOrder) {
             const originalText = btnElement.textContent;
             btnElement.textContent = 'Procesando...';
             btnElement.disabled = true;
@@ -464,7 +481,7 @@
 
                 let allSafestOdds = [];
 
-                // Recorremos todos los eventos para sacar LA más baja de cada uno
+                // 1. Obtener SÓLO la cuota más baja absoluta de CADA partido
                 allEventsData.events.forEach(eventData => {
                     let lowestOdd = null;
                     let lowestMarket = null;
@@ -486,6 +503,7 @@
                         });
                     }
 
+                    // Guardar la información en el array para ordenarla
                     if (lowestOdd) {
                         const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
                         allSafestOdds.push({
@@ -496,6 +514,7 @@
                             startDate: eventData.startDate || new Date().toISOString(),
                             selection: lowestOdd.name || '-',
                             odds: lowestOdd.price.toFixed(2),
+                            numericPrice: lowestOdd.price, // ESTA ES LA CLAVE PARA EL ORDENAMIENTO
                             market: lowestMarket.name || '-',
                             oddId: lowestOdd.id,
                             marketId: lowestMarket.id,
@@ -506,9 +525,19 @@
                     }
                 });
 
-                // Ordenar por cuota de menor a mayor y sacar las 30 primeras
-                allSafestOdds.sort((a, b) => parseFloat(a.odds) - parseFloat(b.odds));
-                const top30 = allSafestOdds.slice(0, 30);
+                // 2. ORDENAR TODA LA LISTA DE MENOR A MAYOR SIEMPRE (Ej: 1.01, 1.02 ... 1.40, 1.80)
+                allSafestOdds.sort((a, b) => a.numericPrice - b.numericPrice);
+
+                let top30 = [];
+                
+                // 3. EXTRAER LOS 30 SEGÚN EL BOTÓN QUE TOCÓ EL USUARIO
+                if (sortOrder === 'asc') {
+                    // "Bajas bajas": Extraer los PRIMEROS 30 de la lista (Los menores del todo, ej 1.01)
+                    top30 = allSafestOdds.slice(0, 30);
+                } else {
+                    // "Bajas altas": Extraer los ÚLTIMOS 30 de la lista ya ordenada (Ej: de 1.40 a 1.80)
+                    top30 = allSafestOdds.slice(-30);
+                }
 
                 if (top30.length === 0) {
                     throw new Error('No se encontraron cuotas válidas mayores a 1.00');
@@ -519,7 +548,7 @@
                 syncAllButtonsUI();
                 updateTicketDisplay();
 
-                // Armar payload EXACTO basado en tu código viejo funcional
+                // Armar el payload EXACTO que pide Altenar
                 const selectionsPayload = top30.map((item, idx) => {
                     const realEvent = allEventsData.events.find(e => e.id == item.eventId);
                     return {
@@ -637,7 +666,7 @@
                 btnElement.style.background = '#28a745';
                 btnElement.style.borderColor = '#28a745';
                 
-                // Mostrarlo en la modal del ticket por si quiere verlo
+                // Mostrarlo en la modal del ticket
                 document.getElementById('generatedCode').textContent = code;
                 document.getElementById('ticketCodeSection').style.display = 'block';
 
@@ -911,11 +940,14 @@
             }
 
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                if(!btn.classList.contains('magic-btn')) btn.classList.remove('active');
+                if(!btn.classList.contains('magic-btn') && !btn.classList.contains('magic-btn-high')) {
+                    btn.classList.remove('active');
+                }
             });
             event.target.classList.add('active');
 
             content.innerHTML = '<div class="loading">Ordenando eventos...</div>';
+
             const sortedData = await sortEventsByType(allEventsData, sortType);
             renderEvents(sortedData);
         }
