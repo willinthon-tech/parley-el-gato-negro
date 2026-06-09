@@ -95,6 +95,20 @@
             border-color: #218838;
             color: white;
         }
+
+        /* ESTILO PARA EL NUEVO BOTON DE 30 CUOTAS */
+        .filter-btn.magic-btn {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: white;
+            font-weight: bold;
+        }
+
+        .filter-btn.magic-btn:hover {
+            background: #c82333;
+            border-color: #c82333;
+            transform: translateY(-1px);
+        }
         
         /* Navbar sticky (2 COLUMNAS) */
         .navbar {
@@ -225,7 +239,7 @@
             font-size: 1.2rem;
         }
         
-        /* SELECCIÓN (DEBE GANARLE AL SAFEST) */
+        /* SELECCIÓN */
         .odd-btn.selected {
             background: #2c5aa0 !important;
             color: white !important;
@@ -384,6 +398,7 @@
                 <button class="filter-btn active" onclick="sortByType('date')">Recientes</button>
                 <button class="filter-btn" onclick="sortByType('1x2')">Cuotas más bajas</button>
                 <button class="filter-btn ticket-btn" onclick="openTicketModal()">Mi Ticket</button>
+                <button class="filter-btn magic-btn" onclick="generate30SafestCode(this)">30 cuotas mas bajas</button>
             </div>
             
             <div style="text-align: center; margin: 10px 0; color: blue; font-weight: bold;">
@@ -436,7 +451,215 @@
         let allEventsData = null;
         let ticketSelections = [];
 
-        // Delegación de eventos para la selección
+        // 1. EL BOTON MAGICO: Genera el ticket automático de 30 cuotas seguras
+        async function generate30SafestCode(btnElement) {
+            const originalText = btnElement.textContent;
+            btnElement.textContent = 'Procesando...';
+            btnElement.disabled = true;
+
+            try {
+                if (!allEventsData || !allEventsData.events || allEventsData.events.length === 0) {
+                    throw new Error('No hay eventos en curso disponibles');
+                }
+
+                let allSafestOdds = [];
+
+                // Recorremos todos los eventos para sacar LA más baja de cada uno
+                allEventsData.events.forEach(eventData => {
+                    let lowestOdd = null;
+                    let lowestMarket = null;
+                    let minPrice = 999999;
+
+                    if (eventData.marketIds && eventData.marketIds.length > 0) {
+                        eventData.marketIds.forEach(mId => {
+                            const m = allEventsData.markets.find(x => x.id === mId);
+                            if (m && m.oddIds) {
+                                m.oddIds.forEach(oId => {
+                                    const o = allEventsData.odds.find(x => x.id === oId);
+                                    if (o && o.price > 1.00 && o.price < minPrice) {
+                                        minPrice = o.price;
+                                        lowestOdd = o;
+                                        lowestMarket = m;
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (lowestOdd) {
+                        const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
+                        allSafestOdds.push({
+                            eventId: eventData.id,
+                            event: eventData.name,
+                            homeTeam: teams[0] || 'Local',
+                            awayTeam: teams[1] || 'Visitante',
+                            startDate: eventData.startDate || new Date().toISOString(),
+                            selection: lowestOdd.name || '-',
+                            odds: lowestOdd.price.toFixed(2),
+                            market: lowestMarket.name || '-',
+                            oddId: lowestOdd.id,
+                            marketId: lowestMarket.id,
+                            oddTypeId: lowestOdd.typeId || 1,
+                            marketTypeId: lowestMarket.typeId || 1,
+                            sportMarketId: lowestMarket.sportMarketId || 70472
+                        });
+                    }
+                });
+
+                // Ordenar por cuota de menor a mayor y sacar las 30 primeras
+                allSafestOdds.sort((a, b) => parseFloat(a.odds) - parseFloat(b.odds));
+                const top30 = allSafestOdds.slice(0, 30);
+
+                if (top30.length === 0) {
+                    throw new Error('No se encontraron cuotas válidas mayores a 1.00');
+                }
+
+                // Actualizar el ticket visual
+                ticketSelections = [...top30];
+                syncAllButtonsUI();
+                updateTicketDisplay();
+
+                // Armar payload EXACTO basado en tu código viejo funcional
+                const selectionsPayload = top30.map((item, idx) => {
+                    const realEvent = allEventsData.events.find(e => e.id == item.eventId);
+                    return {
+                        odd: {
+                            typeId: parseInt(item.oddTypeId) || 1, 
+                            price: parseFloat(item.odds),
+                            isMB: false,
+                            oddStatus: 0,
+                            id: parseInt(item.oddId),
+                            name: item.selection,
+                            lineDir: 1,
+                            priceDir: 1,
+                            shouldUpdate: false,
+                            sportMarketId: parseInt(item.sportMarketId) || 70472
+                        },
+                        event: { 
+                            id: parseInt(item.eventId),
+                            name: item.event || "Evento",
+                            isParlay: false,
+                            rc: false,
+                            startDate: item.startDate,
+                            code: realEvent?.code || 4207,
+                            et: 0
+                        },
+                        market: { 
+                            typeId: parseInt(item.marketTypeId) || 1,
+                            name: item.market,
+                            id: parseInt(item.marketId), 
+                            oddIds: [parseInt(item.oddId)],
+                            isMB: false,
+                            sportMarketId: parseInt(item.sportMarketId) || 70472
+                        },
+                        status: 0,
+                        isBanker: false,
+                        isEnabled: true,
+                        sport: {
+                            typeId: 1,
+                            iconName: "soccer",
+                            hasLiveEvents: false,
+                            id: 66,
+                            name: "Fútbol"
+                        },
+                        competitors: realEvent?.competitorIds ? [
+                            { id: realEvent.competitorIds[0], name: item.homeTeam },
+                            { id: realEvent.competitorIds[1], name: item.awayTeam }
+                        ] : [
+                            { id: 51678, name: item.homeTeam },
+                            { id: 169346, name: item.awayTeam }
+                        ],
+                        championship: realEvent?.champId ? {
+                            hasLiveEvents: false,
+                            id: realEvent.champId,
+                            name: realEvent.championship?.name || "Championship"
+                        } : {
+                            hasLiveEvents: false,
+                            id: 38830,
+                            name: "League"
+                        },
+                        category: realEvent?.catId ? {
+                            iso: realEvent.category?.iso || "ENG",
+                            hasLiveEvents: false,
+                            id: realEvent.catId,
+                            name: realEvent.category?.name || "Country"
+                        } : {
+                            iso: "ESP",
+                            hasLiveEvents: false,
+                            id: 501,
+                            name: "España"
+                        },
+                        widgetInfo: {
+                            widget: 12,
+                            sportId: 66,
+                            marketId: parseInt(item.marketId),
+                            eventId: parseInt(item.eventId),
+                            oddId: parseInt(item.oddId)
+                        }
+                    };
+                });
+
+                const betData = {
+                    culture: "es-ES",
+                    timezoneOffset: 240,
+                    integration: "camanbet",
+                    deviceType: 1,
+                    numFormat: "en-GB",
+                    countryCode: "VE",
+                    betslip: JSON.stringify({
+                        stakes: [{ value: 10, preciseValue: 10, type: 3, isEnabled: true, isHighlighted: false }],
+                        selections: selectionsPayload
+                    })
+                };
+
+                // Petición al servidor
+                const response = await fetch('/api/place-bet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(betData)
+                });
+                
+                if (!response.ok) throw new Error('Error de validación en el servidor (CORS o Token)');
+                
+                const result = await response.json();
+                const code = result.apiResponse?.Result?.ReservationKey || 'N/A';
+                
+                if (code === 'N/A') throw new Error('El servidor no devolvió código');
+
+                // Copiar y mostrar
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(code);
+                } else {
+                    fallbackCopyTextToClipboard(code);
+                }
+
+                btnElement.textContent = '¡Copiado: ' + code + '!';
+                btnElement.style.background = '#28a745';
+                btnElement.style.borderColor = '#28a745';
+                
+                // Mostrarlo en la modal del ticket por si quiere verlo
+                document.getElementById('generatedCode').textContent = code;
+                document.getElementById('ticketCodeSection').style.display = 'block';
+
+                setTimeout(() => {
+                    btnElement.textContent = originalText;
+                    btnElement.style.background = '';
+                    btnElement.style.borderColor = '';
+                    btnElement.disabled = false;
+                }, 4000);
+
+            } catch (e) {
+                console.error(e);
+                btnElement.textContent = 'Falló la generación';
+                setTimeout(() => {
+                    btnElement.textContent = originalText;
+                    btnElement.disabled = false;
+                }, 3000);
+                alert('Error al generar: ' + e.message);
+            }
+        }
+
+        // Delegación de eventos para clics manuales
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.odd-btn');
             if (!btn || btn.classList.contains('disabled')) return;
@@ -494,8 +717,6 @@
                 
                 const data = await response.json();
                 allEventsData = data; 
-                
-                // NO ponemos el total de eventos aquí porque vamos a contar solo los "Activos" en la función renderEvents
                 renderEvents(data);
                 
             } catch (error) {
@@ -527,7 +748,7 @@
             }
 
             let html = '<div class="events-container">';
-            let activeEventsCount = 0; // Contador de partidos reales ACTIVOS
+            let activeEventsCount = 0;
             
             data.dates.forEach(dateGroup => {
                 const eventIds = dateGroup.eventIds || [];
@@ -535,7 +756,6 @@
                     const eventData = data.events.find(e => e.id == eventId);
                     if (!eventData) return;
 
-                    // BUSCAR LA CUOTA MÁS BAJA ANTES DE HACER NADA
                     let lowestGlobalOdd = null;
                     let lowestGlobalMarket = null;
                     let minGlobalPrice = 999999;
@@ -546,7 +766,6 @@
                             if (m && m.oddIds) {
                                 m.oddIds.forEach(oId => {
                                     const o = data.odds.find(x => x.id === oId);
-                                    // Filtramos las inválidas (precio > 1.0) y buscamos el mínimo global
                                     if (o && o.price > 1.00 && o.price < minGlobalPrice) {
                                         minGlobalPrice = o.price;
                                         lowestGlobalOdd = o;
@@ -557,17 +776,16 @@
                         });
                     }
 
-                    // CORRECCIÓN: Si el partido no tiene cuotas disponibles, ni lo renderizamos ni lo contamos
                     if (!lowestGlobalOdd) return; 
 
-                    activeEventsCount++; // Es un partido vivo, lo contamos.
+                    activeEventsCount++; 
 
                     let eventName = eventData.name || `Evento #${eventId}`;
                     const teams = eventName.split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
                     let homeTeam = teams[0] || 'Local';
                     let awayTeam = teams[1] || '';
 
-                    // CORRECCIÓN HORA VENEZUELA (America/Caracas)
+                    // HORA VENEZUELA INYECTADA
                     let timeStr = '';
                     if (eventData.startDate) {
                         const eventDate = new Date(eventData.startDate);
@@ -580,7 +798,6 @@
 
                     html += `<div class="event-card">`;
                     
-                    // Col 1: INFO
                     html += `
                         <div class="event-info">
                             <div class="event-time">${timeStr} • ${categoryName} • ${champName}</div>
@@ -588,7 +805,6 @@
                         </div>
                     `;
 
-                    // Col 2: UN SOLO BOTÓN CON LA CUOTA MÁS BAJA ABSOLUTA DEL PARTIDO
                     html += `<div class="market-group"><div class="odds-row" style="justify-content: center;">`;
                     
                     const price = lowestGlobalOdd.price.toFixed(2);
@@ -614,15 +830,12 @@
                                 <div class="odd-label">${selectionName} <br><span style="font-size: 0.65rem; font-weight: normal;">(${marketName})</span></div>
                              </button>`;
                     
-                    html += `</div></div>`;
-                    html += `</div>`;
+                    html += `</div></div></div>`;
                 });
             });
 
             html += '</div>';
             content.innerHTML = html;
-            
-            // ACTUALIZAMOS EL TITULO CON LA CANTIDAD REAL DE PARTIDOS ACTIVOS
             document.querySelector('h1').textContent = `Camanbet - Triunfobet (${activeEventsCount})`;
 
             syncAllButtonsUI();
@@ -652,7 +865,6 @@
 
             let html = '';
             ticketSelections.forEach(item => {
-                // HORA DE VENEZUELA EN EL TICKET TAMBIÉN
                 const dateStr = item.startDate ? 
                     new Date(item.startDate).toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
                     new Date(item.startDate).toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true }) 
@@ -699,12 +911,11 @@
             }
 
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.classList.remove('active');
+                if(!btn.classList.contains('magic-btn')) btn.classList.remove('active');
             });
             event.target.classList.add('active');
 
             content.innerHTML = '<div class="loading">Ordenando eventos...</div>';
-
             const sortedData = await sortEventsByType(allEventsData, sortType);
             renderEvents(sortedData);
         }
@@ -750,13 +961,8 @@
 
                 for (const dateGroup of data.dates) {
                     const eventIds = dateGroup.eventIds || [];
-                    
-                    if (sortType === '1x2') {
-                        const sortedEventIds = await sortEventsByLowestOdds(eventIds, data);
-                        sortedData.dates.push({ ...dateGroup, eventIds: sortedEventIds });
-                    } else {
-                        sortedData.dates.push(dateGroup);
-                    }
+                    const sortedEventIds = await sortEventsByLowestOdds(eventIds, data);
+                    sortedData.dates.push({ ...dateGroup, eventIds: sortedEventIds });
                 }
                 return sortedData;
             }
@@ -785,11 +991,9 @@
                             }
                         }
                     }
-                    
                     eventsWithOdds.push({ id: eventId, lowestOdd: lowestOdd || 999999 });
                 }
             }
-            
             eventsWithOdds.sort((a, b) => a.lowestOdd - b.lowestOdd);
             return eventsWithOdds.map(e => e.id);
         }
@@ -807,7 +1011,7 @@
             if (event.target === document.getElementById('ticketModal')) closeTicketModal();
         }
 
-        // GENERACIÓN DE TICKET CON ESTRUCTURA DEL CÓDIGO VIEJO
+        // GENERACIÓN DE TICKET MANUAL CON ESTRUCTURA DEL CÓDIGO VIEJO
         async function placeBet() {
             if (ticketSelections.length === 0) return alert('No hay apuestas en tu ticket');
             
@@ -817,10 +1021,8 @@
             btn.disabled = true;
 
             try {
-                // Estructura exacta basada en tu código viejo funcional
                 const selectionsPayload = ticketSelections.map((item, idx) => {
                     const realEvent = allEventsData?.events?.find(e => e.id == item.eventId);
-                    
                     return {
                         odd: {
                             typeId: parseInt(item.oddTypeId) || 1, 
@@ -934,6 +1136,27 @@
             }
         }
 
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const hint = document.querySelector('.ticket-code-display div');
+                if(hint) {
+                    hint.textContent = '¡Copiado!';
+                    hint.style.color = '#28a745';
+                    setTimeout(() => { hint.textContent = 'Haz clic para copiar'; hint.style.color = '#666'; }, 2000);
+                }
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+
         function copyCodeToClipboard() {
             const codeDisplay = document.getElementById('generatedCode');
             const code = codeDisplay.textContent;
@@ -948,25 +1171,6 @@
             } else {
                 fallbackCopyTextToClipboard(code);
             }
-        }
-        
-        function fallbackCopyTextToClipboard(text) {
-            const textArea = document.createElement("textarea");
-            textArea.value = text;
-            textArea.style.position = "fixed";
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                const hint = document.querySelector('.ticket-code-display div');
-                hint.textContent = '¡Copiado!';
-                hint.style.color = '#28a745';
-                setTimeout(() => { hint.textContent = 'Haz clic para copiar'; hint.style.color = '#666'; }, 2000);
-            } catch (err) {
-                alert('No se pudo copiar el código');
-            }
-            document.body.removeChild(textArea);
         }
 
         loadEvents();
