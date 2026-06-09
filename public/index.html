@@ -494,9 +494,10 @@
                 
                 const data = await response.json();
                 allEventsData = data; 
+                
+                // NO ponemos el total de eventos aquí porque vamos a contar solo los "Activos" en la función renderEvents
                 renderEvents(data);
                 
-                document.querySelector('h1').textContent = `Camanbet - Triunfobet (${data.events.length})`;
             } catch (error) {
                 console.error('❌ Error cargando eventos:', error);
                 content.innerHTML = `<div class="error">Error de conexión: ${error.message}</div>`;
@@ -521,10 +522,12 @@
             const content = document.getElementById('content');
             if (!data.dates || data.dates.length === 0 || !data.events) {
                 content.innerHTML = '<div class="loading">No hay eventos disponibles para hoy.</div>';
+                document.querySelector('h1').textContent = `Camanbet - Triunfobet (0)`;
                 return;
             }
 
             let html = '<div class="events-container">';
+            let activeEventsCount = 0; // Contador de partidos reales ACTIVOS
             
             data.dates.forEach(dateGroup => {
                 const eventIds = dateGroup.eventIds || [];
@@ -532,15 +535,44 @@
                     const eventData = data.events.find(e => e.id == eventId);
                     if (!eventData) return;
 
+                    // BUSCAR LA CUOTA MÁS BAJA ANTES DE HACER NADA
+                    let lowestGlobalOdd = null;
+                    let lowestGlobalMarket = null;
+                    let minGlobalPrice = 999999;
+
+                    if (eventData.marketIds) {
+                        eventData.marketIds.forEach(mId => {
+                            const m = data.markets.find(x => x.id === mId);
+                            if (m && m.oddIds) {
+                                m.oddIds.forEach(oId => {
+                                    const o = data.odds.find(x => x.id === oId);
+                                    // Filtramos las inválidas (precio > 1.0) y buscamos el mínimo global
+                                    if (o && o.price > 1.00 && o.price < minGlobalPrice) {
+                                        minGlobalPrice = o.price;
+                                        lowestGlobalOdd = o;
+                                        lowestGlobalMarket = m;
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    // CORRECCIÓN: Si el partido no tiene cuotas disponibles, ni lo renderizamos ni lo contamos
+                    if (!lowestGlobalOdd) return; 
+
+                    activeEventsCount++; // Es un partido vivo, lo contamos.
+
                     let eventName = eventData.name || `Evento #${eventId}`;
                     const teams = eventName.split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
                     let homeTeam = teams[0] || 'Local';
                     let awayTeam = teams[1] || '';
 
+                    // CORRECCIÓN HORA VENEZUELA (America/Caracas)
                     let timeStr = '';
                     if (eventData.startDate) {
                         const eventDate = new Date(eventData.startDate);
-                        timeStr = eventDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                        timeStr = eventDate.toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' • ' + 
+                                  eventDate.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true });
                     }
 
                     const categoryName = eventData.category?.name || '';
@@ -556,55 +588,31 @@
                         </div>
                     `;
 
-                    // Col 2: CUOTA MÁS SEGURA GLOBAL
-                    html += `<div class="market-group"><div class="odds-row">`;
+                    // Col 2: UN SOLO BOTÓN CON LA CUOTA MÁS BAJA ABSOLUTA DEL PARTIDO
+                    html += `<div class="market-group"><div class="odds-row" style="justify-content: center;">`;
                     
-                    let lowestGlobalOdd = null;
-                    let lowestGlobalMarket = null;
-                    let minGlobalPrice = 999999;
+                    const price = lowestGlobalOdd.price.toFixed(2);
+                    const selectionName = lowestGlobalOdd.name || '-';
+                    const marketName = lowestGlobalMarket.name || '-';
+                    
+                    const mTypeId = lowestGlobalMarket.typeId || 1;
+                    const sportMarketId = lowestGlobalMarket.sportMarketId || 70472;
+                    const oTypeId = lowestGlobalOdd.typeId || 1;
 
-                    if (eventData.marketIds) {
-                        eventData.marketIds.forEach(mId => {
-                            const m = data.markets.find(x => x.id === mId);
-                            if (m && m.oddIds) {
-                                m.oddIds.forEach(oId => {
-                                    const o = data.odds.find(x => x.id === oId);
-                                    if (o && o.price > 1.00 && o.price < minGlobalPrice) {
-                                        minGlobalPrice = o.price;
-                                        lowestGlobalOdd = o;
-                                        lowestGlobalMarket = m;
-                                    }
-                                });
-                            }
-                        });
-                    }
-
-                    if (lowestGlobalOdd) {
-                        const price = lowestGlobalOdd.price.toFixed(2);
-                        const selectionName = lowestGlobalOdd.name || '-';
-                        const marketName = lowestGlobalMarket.name || '-';
-                        
-                        const mTypeId = lowestGlobalMarket.typeId || 1;
-                        const sportMarketId = lowestGlobalMarket.sportMarketId || 70472;
-                        const oTypeId = lowestGlobalOdd.typeId || 1;
-
-                        html += `<button class="odd-btn safest" style="width: 100%; flex: none;"
-                                    data-event-id="${eventId}" 
-                                    data-selection="${selectionName}" 
-                                    data-odds="${price}" 
-                                    data-market="${marketName}" 
-                                    data-odd-id="${lowestGlobalOdd.id}" 
-                                    data-market-id="${lowestGlobalMarket.id}" 
-                                    data-odd-type-id="${oTypeId}" 
-                                    data-market-type-id="${mTypeId}" 
-                                    data-sport-market-id="${sportMarketId}">
-                                    <div class="super-segura-badge">⭐ Más Segura</div>
-                                    <div class="odd-value">${price}</div>
-                                    <div class="odd-label">${selectionName} <br><span style="font-size: 0.65rem; font-weight: normal;">(${marketName})</span></div>
-                                 </button>`;
-                    } else {
-                        html += `<button class="odd-btn disabled" style="width: 100%; flex: none;"><div class="odd-value">N/A</div><div class="odd-label">-</div></button>`;
-                    }
+                    html += `<button class="odd-btn safest" style="width: 100%; flex: none;"
+                                data-event-id="${eventId}" 
+                                data-selection="${selectionName}" 
+                                data-odds="${price}" 
+                                data-market="${marketName}" 
+                                data-odd-id="${lowestGlobalOdd.id}" 
+                                data-market-id="${lowestGlobalMarket.id}" 
+                                data-odd-type-id="${oTypeId}" 
+                                data-market-type-id="${mTypeId}" 
+                                data-sport-market-id="${sportMarketId}">
+                                <div class="super-segura-badge">⭐ Más Segura</div>
+                                <div class="odd-value" style="font-size: 1.2rem;">${price}</div>
+                                <div class="odd-label">${selectionName} <br><span style="font-size: 0.65rem; font-weight: normal;">(${marketName})</span></div>
+                             </button>`;
                     
                     html += `</div></div>`;
                     html += `</div>`;
@@ -613,6 +621,10 @@
 
             html += '</div>';
             content.innerHTML = html;
+            
+            // ACTUALIZAMOS EL TITULO CON LA CANTIDAD REAL DE PARTIDOS ACTIVOS
+            document.querySelector('h1').textContent = `Camanbet - Triunfobet (${activeEventsCount})`;
+
             syncAllButtonsUI();
         }
 
@@ -640,7 +652,11 @@
 
             let html = '';
             ticketSelections.forEach(item => {
-                const dateStr = item.startDate ? new Date(item.startDate).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : '';
+                // HORA DE VENEZUELA EN EL TICKET TAMBIÉN
+                const dateStr = item.startDate ? 
+                    new Date(item.startDate).toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
+                    new Date(item.startDate).toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true }) 
+                    : '';
                 
                 html += `
                     <div style="background:white; border:1px solid #e9ecef; border-radius:6px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
