@@ -333,6 +333,9 @@
             max-width: 600px;
             border-radius: 8px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            max-height: 85vh;
         }
         
         .ticket-header {
@@ -466,7 +469,7 @@
         let allEventsData = null;
         let ticketSelections = [];
 
-        // EL BOTON MAGICO (Maneja orden ascendente y descendente)
+        // EL BOTON MAGICO (Maneja orden ascendente y descendente y luego ordena cronológicamente)
         async function generate30SafestCode(btnElement, sortOrder) {
             const originalText = btnElement.textContent;
             btnElement.textContent = 'Procesando...';
@@ -480,7 +483,6 @@
                 let allSafestOdds = [];
 
                 // 1. RECORRER SOLO LAS FECHAS VALIDAS (Día en curso filtrado por el servidor)
-                // Usamos data.dates en lugar de data.events entero para respetar tu filtro del servidor.
                 allEventsData.dates.forEach(dateGroup => {
                     const eventIds = dateGroup.eventIds || [];
                     eventIds.forEach(eventId => {
@@ -524,7 +526,7 @@
                                 startDate: dateString || new Date().toISOString(),
                                 selection: lowestOdd.name || '-',
                                 odds: lowestOdd.price.toFixed(2),
-                                numericPrice: lowestOdd.price, // ESTA ES LA CLAVE PARA EL ORDENAMIENTO
+                                numericPrice: lowestOdd.price, // ESTA ES LA CLAVE PARA EL ORDENAMIENTO POR CUOTA
                                 market: lowestMarket.name || '-',
                                 oddId: lowestOdd.id,
                                 marketId: lowestMarket.id,
@@ -543,16 +545,19 @@
                 
                 // 3. EXTRAER LOS 30 SEGÚN EL BOTÓN QUE TOCÓ EL USUARIO
                 if (sortOrder === 'asc') {
-                    // "Bajas bajas": Extraer los PRIMEROS 30 de la lista (Los menores del todo, ej 1.01)
+                    // "Bajas bajas": Extraer los PRIMEROS 30
                     top30 = allSafestOdds.slice(0, 30);
                 } else {
-                    // "Bajas altas": Extraer los ÚLTIMOS 30 de la lista ya ordenada (Ej: de 1.40 a 1.80)
+                    // "Bajas altas": Extraer los ÚLTIMOS 30
                     top30 = allSafestOdds.slice(-30);
                 }
 
                 if (top30.length === 0) {
                     throw new Error('No se encontraron cuotas válidas mayores a 1.00');
                 }
+
+                // 4. NUEVA LÓGICA: ORDENAR LOS 30 ELEGIDOS CRONOLÓGICAMENTE (Por fecha y hora)
+                top30.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
                 // Actualizar el ticket visual
                 ticketSelections = [...top30];
@@ -725,7 +730,6 @@
             if (!isCurrentlySelected && eventData) {
                 const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
                 
-                // CORRECCIÓN: Fechas consistentes
                 let dateString = eventData.startDate;
                 if (dateString && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
                     dateString += 'Z';
@@ -747,6 +751,9 @@
                     marketTypeId: marketTypeId,
                     sportMarketId: sportMarketId
                 });
+
+                // Ordenar ticket manual cronológicamente también
+                ticketSelections.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
             }
 
             syncAllButtonsUI();
@@ -915,10 +922,16 @@
 
             let html = '';
             ticketSelections.forEach(item => {
-                const dateStr = item.startDate ? 
-                    new Date(item.startDate).toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
-                    new Date(item.startDate).toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true }) 
-                    : '';
+                let dateStr = '';
+                if(item.startDate){
+                    let dateString = item.startDate;
+                    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+                        dateString += 'Z';
+                    }
+                    const eventDate = new Date(dateString);
+                    dateStr = eventDate.toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
+                              eventDate.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true });
+                }
                 
                 html += `
                     <div style="background:white; border:1px solid #e9ecef; border-radius:6px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -1074,6 +1087,9 @@
             btn.disabled = true;
 
             try {
+                // Re-ordenamos cronológicamente aquí también por seguridad antes de mandarlo
+                ticketSelections.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+
                 const selectionsPayload = ticketSelections.map((item, idx) => {
                     const realEvent = allEventsData?.events?.find(e => e.id == item.eventId);
                     return {
