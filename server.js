@@ -112,14 +112,12 @@ app.get('/api/top-events', async (req, res) => {
         
         // =========================================================
         // 3. NORMALIZADOR INTELIGENTE DE CUOTAS PARA EL FRONTEND
-        // Evita que las cuotas de Béisbol y Baloncesto se desordenen
         // =========================================================
         console.log('🔧 Normalizando mercados para el frontend...');
         
         combinedData.markets.forEach(market => {
             const mName = market.name?.toLowerCase() || '';
             
-            // Detectar si es un mercado de Ganador o 1x2 (fútbol, béisbol, basket, etc.)
             const isWinnerMarket = market.typeId === 1 || market.typeId === 11 || 
                                    mName.includes('ganador') || 
                                    mName.includes('money line') ||
@@ -127,11 +125,9 @@ app.get('/api/top-events', async (req, res) => {
                                    mName === '1x2';
                                    
             if (isWinnerMarket) {
-                market.typeId = 1; // Forzar para que el HTML lo encuentre
-                
+                market.typeId = 1;
                 let id1 = null, idX = null, id2 = null;
                 
-                // Buscar qué cuota es cuál (Local=1, Empate=2, Visitante=3)
                 market.oddIds.forEach(oddId => {
                     const odd = combinedData.odds.find(o => o.id === oddId);
                     if (odd) {
@@ -141,13 +137,11 @@ app.get('/api/top-events', async (req, res) => {
                     }
                 });
                 
-                // Si el deporte (ej. Béisbol) manda las cuotas sin un typeId específico, asumimos por orden
                 if (!id1 && !idX && !id2 && market.oddIds.length > 0) {
                     id1 = market.oddIds[0];
                     if (market.oddIds.length > 1) id2 = market.oddIds[market.oddIds.length - 1];
                 }
                 
-                // INYECCIÓN: Rellenar vacíos con cuotas falsas 0.00 para mantener las 3 columnas del HTML intactas
                 if (!id1) {
                     const f = 7770000000 + market.id;
                     combinedData.odds.push({ id: f, typeId: 1, price: 0.00, name: "1" });
@@ -164,17 +158,14 @@ app.get('/api/top-events', async (req, res) => {
                     id2 = f;
                 }
                 
-                // Forzar el orden exacto que espera index.html: [Local, Empate, Visitante]
                 market.oddIds = [id1, idX, id2];
             }
             
-            // Detectar si es Doble Oportunidad
             const isDoubleChance = market.typeId === 2 || market.typeId === 10 || 
                                    mName.includes('doble') || mName.includes('double');
                                    
             if (isDoubleChance) {
-                market.typeId = 2; // Forzar para HTML
-                
+                market.typeId = 2;
                 let id1X = null, id12 = null, id2X = null;
                 
                 market.oddIds.forEach(oddId => {
@@ -186,14 +177,12 @@ app.get('/api/top-events', async (req, res) => {
                     }
                 });
                 
-                // Fallback por orden si no hay typeId
                 if (!id1X && !id12 && !id2X && market.oddIds.length >= 3) {
                     id1X = market.oddIds[0];
                     id12 = market.oddIds[1];
                     id2X = market.oddIds[2];
                 }
                 
-                // Rellenar vacíos con 0.00
                 if (!id1X) {
                     const f = 8880000000 + market.id;
                     combinedData.odds.push({ id: f, typeId: 9, price: 0.00, name: "1X" });
@@ -215,21 +204,32 @@ app.get('/api/top-events', async (req, res) => {
         });
 
         // =========================================================
-        // FILTRO ESTRICTO: SOLO EL DÍA EN CURSO (HOY)
+        // FILTRO ESTRICTO: SOLO EL DÍA EN CURSO (HOY EN VENEZUELA)
         // =========================================================
-        console.log('🔍 Aplicando filtro: SOLO PARTIDOS DE HOY...');
+        console.log('🔍 Aplicando filtro: SOLO PARTIDOS DE HOY (Hora Venezuela)...');
         
-        const today = new Date();
-        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        // 1. Obtenemos la hora actual forzada a Caracas
+        const caracasTimeString = new Date().toLocaleString("en-US", {timeZone: "America/Caracas"});
+        const todayCaracas = new Date(caracasTimeString);
+        
+        // 2. Establecemos inicio y fin del día basado en esa fecha local
+        const todayStart = new Date(todayCaracas.getFullYear(), todayCaracas.getMonth(), todayCaracas.getDate(), 0, 0, 0);
+        const todayEnd = new Date(todayCaracas.getFullYear(), todayCaracas.getMonth(), todayCaracas.getDate(), 23, 59, 59);
         
         Array.from(dateMap.values()).forEach(dateGroup => {
             if (!dateGroup.dateTime) return;
             
-            const eventDate = new Date(dateGroup.dateTime);
+            // 3. Altenar manda la fecha en UTC. La parseamos y la llevamos a zona Caracas para comparar.
+            let dateString = dateGroup.dateTime;
+            if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+                dateString += 'Z'; // Forzamos UTC si Altenar omitió la 'Z'
+            }
             
-            // Validamos que el partido esté EXCLUSIVAMENTE dentro de hoy
-            if (eventDate >= todayStart && eventDate <= todayEnd) {
+            const eventDateUTC = new Date(dateString);
+            const eventDateCaracas = new Date(eventDateUTC.toLocaleString("en-US", {timeZone: "America/Caracas"}));
+            
+            // Validamos que el partido esté EXCLUSIVAMENTE dentro de hoy en Venezuela
+            if (eventDateCaracas >= todayStart && eventDateCaracas <= todayEnd) {
                 combinedData.dates.push({
                     dateTime: dateGroup.dateTime,
                     eventIds: Array.from(dateGroup.eventIds)
@@ -238,7 +238,7 @@ app.get('/api/top-events', async (req, res) => {
         });
         
         const totalEvents = combinedData.dates.reduce((sum, dateGroup) => sum + (dateGroup.eventIds?.length || 0), 0);
-        console.log(`🎉 Filtro aplicado: ${totalEvents} eventos para el DÍA EN CURSO.`);
+        console.log(`🎉 Filtro aplicado: ${totalEvents} eventos para el DÍA EN CURSO en Venezuela.`);
         
         res.json(combinedData);
         
@@ -248,7 +248,7 @@ app.get('/api/top-events', async (req, res) => {
     }
 });
 
-// Endpoint para obtener detalles de un evento específico (INTACTO)
+// Endpoint para obtener detalles de un evento específico
 app.get('/api/event-details/:eventId', async (req, res) => {
     const eventId = req.params.eventId;
     const upstream = `https://sb2frontend-altenar2.biahosted.com/api/widget/GetEventDetails?eventId=${eventId}&culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE`;
@@ -281,22 +281,15 @@ app.get('/api/event-details/:eventId', async (req, res) => {
     }
 });
 
-// Endpoint para procesar apuestas - Proxy al endpoint real (INTACTO)
+// Endpoint para procesar apuestas
 app.post('/api/place-bet', express.json(), async (req, res) => {
     try {
         const betData = req.body;
         
-        if (!betData.betslip) {
-            return res.status(400).json({ 
-                error: 'Datos de apuesta inválidos',
-                message: 'No se encontró el campo betslip'
-            });
-        }
-        
         if (!betData.betslip || betData.betslip.length === 0) {
             return res.status(400).json({ 
                 error: 'Datos de apuesta inválidos',
-                message: 'El campo betslip está vacío'
+                message: 'No se encontró el campo betslip'
             });
         }
         

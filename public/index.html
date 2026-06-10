@@ -112,7 +112,7 @@
 
         /* ESTILO PARA EL BOTON DE 30 CUOTAS ALTAS */
         .filter-btn.magic-btn-high {
-            background: #fd7e14; /* Naranja */
+            background: #fd7e14;
             border-color: #fd7e14;
             color: white;
             font-weight: bold;
@@ -412,9 +412,7 @@
                 <button class="filter-btn active" onclick="sortByType('date')">Recientes</button>
                 <button class="filter-btn" onclick="sortByType('1x2')">Cuotas más bajas</button>
                 <button class="filter-btn ticket-btn" onclick="openTicketModal()">Mi Ticket</button>
-                
                 <button class="filter-btn magic-btn" onclick="generate30SafestCode(this, 'asc')">30 cuotas más bajas</button>
-                
                 <button class="filter-btn magic-btn-high" onclick="generate30SafestCode(this, 'desc')">30 cuotas más altas</button>
             </div>
             
@@ -468,7 +466,7 @@
         let allEventsData = null;
         let ticketSelections = [];
 
-        // LA LOGICA MATEMATICA DE ORDENAMIENTO DE CUOTAS
+        // EL BOTON MAGICO (Maneja orden ascendente y descendente)
         async function generate30SafestCode(btnElement, sortOrder) {
             const originalText = btnElement.textContent;
             btnElement.textContent = 'Procesando...';
@@ -481,48 +479,61 @@
 
                 let allSafestOdds = [];
 
-                // 1. Obtener SÓLO la cuota más baja absoluta de CADA partido
-                allEventsData.events.forEach(eventData => {
-                    let lowestOdd = null;
-                    let lowestMarket = null;
-                    let minPrice = 999999;
+                // 1. RECORRER SOLO LAS FECHAS VALIDAS (Día en curso filtrado por el servidor)
+                // Usamos data.dates en lugar de data.events entero para respetar tu filtro del servidor.
+                allEventsData.dates.forEach(dateGroup => {
+                    const eventIds = dateGroup.eventIds || [];
+                    eventIds.forEach(eventId => {
+                        const eventData = allEventsData.events.find(e => e.id == eventId);
+                        if (!eventData) return;
+                        
+                        let lowestOdd = null;
+                        let lowestMarket = null;
+                        let minPrice = 999999;
 
-                    if (eventData.marketIds && eventData.marketIds.length > 0) {
-                        eventData.marketIds.forEach(mId => {
-                            const m = allEventsData.markets.find(x => x.id === mId);
-                            if (m && m.oddIds) {
-                                m.oddIds.forEach(oId => {
-                                    const o = allEventsData.odds.find(x => x.id === oId);
-                                    if (o && o.price > 1.00 && o.price < minPrice) {
-                                        minPrice = o.price;
-                                        lowestOdd = o;
-                                        lowestMarket = m;
-                                    }
-                                });
+                        if (eventData.marketIds && eventData.marketIds.length > 0) {
+                            eventData.marketIds.forEach(mId => {
+                                const m = allEventsData.markets.find(x => x.id === mId);
+                                if (m && m.oddIds) {
+                                    m.oddIds.forEach(oId => {
+                                        const o = allEventsData.odds.find(x => x.id === oId);
+                                        if (o && o.price > 1.00 && o.price < minPrice) {
+                                            minPrice = o.price;
+                                            lowestOdd = o;
+                                            lowestMarket = m;
+                                        }
+                                    });
+                                }
+                            });
+                        }
+
+                        // Guardar la información en el array
+                        if (lowestOdd) {
+                            const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
+                            
+                            let dateString = eventData.startDate;
+                            if (dateString && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+                                dateString += 'Z';
                             }
-                        });
-                    }
-
-                    // Guardar la información en el array para ordenarla
-                    if (lowestOdd) {
-                        const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
-                        allSafestOdds.push({
-                            eventId: eventData.id,
-                            event: eventData.name,
-                            homeTeam: teams[0] || 'Local',
-                            awayTeam: teams[1] || 'Visitante',
-                            startDate: eventData.startDate || new Date().toISOString(),
-                            selection: lowestOdd.name || '-',
-                            odds: lowestOdd.price.toFixed(2),
-                            numericPrice: lowestOdd.price, // ESTA ES LA CLAVE PARA EL ORDENAMIENTO
-                            market: lowestMarket.name || '-',
-                            oddId: lowestOdd.id,
-                            marketId: lowestMarket.id,
-                            oddTypeId: lowestOdd.typeId || 1,
-                            marketTypeId: lowestMarket.typeId || 1,
-                            sportMarketId: lowestMarket.sportMarketId || 70472
-                        });
-                    }
+                            
+                            allSafestOdds.push({
+                                eventId: eventData.id,
+                                event: eventData.name,
+                                homeTeam: teams[0] || 'Local',
+                                awayTeam: teams[1] || 'Visitante',
+                                startDate: dateString || new Date().toISOString(),
+                                selection: lowestOdd.name || '-',
+                                odds: lowestOdd.price.toFixed(2),
+                                numericPrice: lowestOdd.price, // ESTA ES LA CLAVE PARA EL ORDENAMIENTO
+                                market: lowestMarket.name || '-',
+                                oddId: lowestOdd.id,
+                                marketId: lowestMarket.id,
+                                oddTypeId: lowestOdd.typeId || 1,
+                                marketTypeId: lowestMarket.typeId || 1,
+                                sportMarketId: lowestMarket.sportMarketId || 70472
+                            });
+                        }
+                    });
                 });
 
                 // 2. ORDENAR TODA LA LISTA DE MENOR A MAYOR SIEMPRE (Ej: 1.01, 1.02 ... 1.40, 1.80)
@@ -714,13 +725,19 @@
             if (!isCurrentlySelected && eventData) {
                 const teams = (eventData.name || '').split(/vs\.|vs/i).map(t => cleanTeamName(t.trim()));
                 
+                // CORRECCIÓN: Fechas consistentes
+                let dateString = eventData.startDate;
+                if (dateString && !dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+                    dateString += 'Z';
+                }
+
                 ticketSelections.push({
                     id: `${eventId}_${selection}_${market}`,
                     eventId: eventId,
                     event: eventData.name,
                     homeTeam: teams[0] || 'Local',
                     awayTeam: teams[1] || 'Visitante',
-                    startDate: eventData.startDate,
+                    startDate: dateString,
                     selection: selection,
                     odds: odds,
                     market: market,
@@ -814,10 +831,14 @@
                     let homeTeam = teams[0] || 'Local';
                     let awayTeam = teams[1] || '';
 
-                    // HORA VENEZUELA INYECTADA
+                    // HORA VENEZUELA INYECTADA Y CORREGIDA
                     let timeStr = '';
                     if (eventData.startDate) {
-                        const eventDate = new Date(eventData.startDate);
+                        let dateString = eventData.startDate;
+                        if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
+                            dateString += 'Z';
+                        }
+                        const eventDate = new Date(dateString);
                         timeStr = eventDate.toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' • ' + 
                                   eventDate.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true });
                     }
