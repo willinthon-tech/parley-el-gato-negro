@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Camanbet - Triunfobet</title>
+    <title>Las Super Fijas</title>
     <style>
         body { 
             font-family: system-ui, -apple-system, sans-serif; 
@@ -836,7 +836,7 @@
             const content = document.getElementById('content');
             if (!data.dates || data.dates.length === 0 || !data.events) {
                 content.innerHTML = '<div class="loading">No hay eventos disponibles para hoy.</div>';
-                document.querySelector('h1').textContent = `Camanbet - Triunfobet (0)`;
+                document.querySelector('h1').textContent = `Las Super Fijas (0)`;
                 return;
             }
 
@@ -930,7 +930,7 @@
 
             html += '</div>';
             content.innerHTML = html;
-            document.querySelector('h1').textContent = `Camanbet - Triunfobet (${activeEventsCount})`;
+            document.querySelector('h1').textContent = `Las Super Fijas (${activeEventsCount})`;
 
             syncAllButtonsUI();
         }
