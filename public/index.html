@@ -493,7 +493,7 @@
                         
                         // Si hay 2 o más opciones, validar la diferencia de 0.10
                         if (marketOdds.length >= 2) {
-                            if ((marketOdds[1].price - marketOdds[0].price) >= 0.10) {
+                            if ((marketOdds[1].price - marketOdds[0].price) >= 0.10) { // VALIDACION DE CUOTA SEGURA 0.10
                                 isValidMarket = true;
                             }
                         } else if (marketOdds.length === 1) {
