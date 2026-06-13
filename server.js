@@ -18,7 +18,7 @@ app.get('/', (req, res) => {
 // Proxy para evitar CORS - BARRIDO DINÁMICO MULTIDEPORTE + NORMALIZADOR DE CUOTAS
 app.get('/api/top-events', async (req, res) => {
     try {
-        console.log('🔄 Iniciando barrido dinámico de deportes en Altenar...');
+        console.log('🔄 Iniciando barrido exclusivo de Fútbol, Béisbol y Baloncesto...');
         
         const headers = {
             'accept': '*/*',
@@ -37,17 +37,8 @@ app.get('/api/top-events', async (req, res) => {
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
         };
 
-        // 1. OBTENER LA LISTA DINÁMICA DE DEPORTES ACTIVOS
-        const menuUrl = 'https://sb2frontend-altenar2.biahosted.com/api/widget/GetTopSportMenu?culture=es-ES&timezoneOffset=240&integration=camanbet&deviceType=1&numFormat=en-GB&countryCode=VE';
-        const menuResponse = await fetch(menuUrl, { method: 'GET', headers });
-        let sportIds = [66, 67, 76, 68, 70, 75]; // Fallback por defecto
-        
-        if (menuResponse.ok) {
-            const menuData = await menuResponse.json();
-            if (menuData && menuData.topSports) {
-                sportIds = menuData.topSports.map(sport => sport.id);
-            }
-        }
+        // 1. DEPORTES RESTRINGIDOS: Solo Fútbol (66), Baloncesto (67) y Béisbol (76)
+        const sportIds = [66, 67, 76];
 
         // Mapas para fusionar TODOS los datos sin duplicados
         const eventMap = new Map();
@@ -55,6 +46,9 @@ app.get('/api/top-events', async (req, res) => {
         const oddMap = new Map();
         const dateMap = new Map();
         const competitorMap = new Map();
+        const sportMap = new Map();
+        const categoryMap = new Map();
+        const champMap = new Map();
 
         const processData = (data) => {
             if (!data) return;
@@ -62,6 +56,9 @@ app.get('/api/top-events', async (req, res) => {
             if (data.markets) data.markets.forEach(m => marketMap.set(m.id, m));
             if (data.odds) data.odds.forEach(o => oddMap.set(o.id, o));
             if (data.competitors) data.competitors.forEach(c => competitorMap.set(c.id, c));
+            if (data.sports) data.sports.forEach(s => sportMap.set(s.id, s));
+            if (data.categories) data.categories.forEach(c => categoryMap.set(c.id, c));
+            if (data.championships) data.championships.forEach(c => champMap.set(c.id, c));
             
             if (data.dates) {
                 data.dates.forEach(d => {
@@ -105,10 +102,13 @@ app.get('/api/top-events', async (req, res) => {
             markets: Array.from(marketMap.values()),
             odds: Array.from(oddMap.values()),
             competitors: Array.from(competitorMap.values()),
+            sports: Array.from(sportMap.values()),
+            categories: Array.from(categoryMap.values()),
+            championships: Array.from(champMap.values()),
             dates: []
         };
 
-        console.log(`📊 Data total extraída: ${combinedData.events.length} eventos en todos los deportes.`);
+        console.log(`📊 Data total extraída: ${combinedData.events.length} eventos (Fútbol, Basket, Béisbol).`);
         
         // =========================================================
         // 3. NORMALIZADOR INTELIGENTE DE CUOTAS PARA EL FRONTEND
@@ -125,7 +125,8 @@ app.get('/api/top-events', async (req, res) => {
                                    mName === '1x2';
                                    
             if (isWinnerMarket) {
-                market.typeId = 1;
+                market.typeId = 1; 
+                
                 let id1 = null, idX = null, id2 = null;
                 
                 market.oddIds.forEach(oddId => {
@@ -165,7 +166,8 @@ app.get('/api/top-events', async (req, res) => {
                                    mName.includes('doble') || mName.includes('double');
                                    
             if (isDoubleChance) {
-                market.typeId = 2;
+                market.typeId = 2; 
+                
                 let id1X = null, id12 = null, id2X = null;
                 
                 market.oddIds.forEach(oddId => {
@@ -208,27 +210,23 @@ app.get('/api/top-events', async (req, res) => {
         // =========================================================
         console.log('🔍 Aplicando filtro: SOLO PARTIDOS DE HOY (Hora Venezuela)...');
         
-        // 1. Obtenemos la hora actual forzada a Caracas
         const caracasTimeString = new Date().toLocaleString("en-US", {timeZone: "America/Caracas"});
         const todayCaracas = new Date(caracasTimeString);
         
-        // 2. Establecemos inicio y fin del día basado en esa fecha local
         const todayStart = new Date(todayCaracas.getFullYear(), todayCaracas.getMonth(), todayCaracas.getDate(), 0, 0, 0);
         const todayEnd = new Date(todayCaracas.getFullYear(), todayCaracas.getMonth(), todayCaracas.getDate(), 23, 59, 59);
         
         Array.from(dateMap.values()).forEach(dateGroup => {
             if (!dateGroup.dateTime) return;
             
-            // 3. Altenar manda la fecha en UTC. La parseamos y la llevamos a zona Caracas para comparar.
             let dateString = dateGroup.dateTime;
             if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
-                dateString += 'Z'; // Forzamos UTC si Altenar omitió la 'Z'
+                dateString += 'Z';
             }
             
             const eventDateUTC = new Date(dateString);
             const eventDateCaracas = new Date(eventDateUTC.toLocaleString("en-US", {timeZone: "America/Caracas"}));
             
-            // Validamos que el partido esté EXCLUSIVAMENTE dentro de hoy en Venezuela
             if (eventDateCaracas >= todayStart && eventDateCaracas <= todayEnd) {
                 combinedData.dates.push({
                     dateTime: dateGroup.dateTime,
