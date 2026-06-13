@@ -25,7 +25,6 @@
             min-height: 100vh;
         }
         
-        /* Header con filtros */
         .header { 
             background: white; 
             padding: 30px 0; 
@@ -96,7 +95,6 @@
             color: white;
         }
 
-        /* ESTILO PARA EL BOTON DE 30 CUOTAS BAJAS */
         .filter-btn.magic-btn {
             background: #dc3545;
             border-color: #dc3545;
@@ -110,7 +108,6 @@
             transform: translateY(-1px);
         }
 
-        /* ESTILO PARA EL BOTON DE 30 CUOTAS ALTAS */
         .filter-btn.magic-btn-high {
             background: #fd7e14;
             border-color: #fd7e14;
@@ -124,7 +121,6 @@
             transform: translateY(-1px);
         }
         
-        /* Navbar sticky (2 COLUMNAS) */
         .navbar {
             position: sticky;
             top: 0;
@@ -152,15 +148,8 @@
             border: 1px solid #e9ecef;
         }
 
-        /* Contenido principal */
-        .content { 
-            padding: 0;
-        }
-        
-        /* Tarjetas de eventos (2 COLUMNAS) */
-        .events-container {
-            background: white;
-        }
+        .content { padding: 0; }
+        .events-container { background: white; }
         
         .event-card { 
             border-bottom: 1px solid #e9ecef; 
@@ -172,11 +161,8 @@
             transition: background-color 0.2s;
         }
         
-        .event-card:hover {
-            background: #f8f9fa;
-        }
+        .event-card:hover { background: #f8f9fa; }
         
-        /* Bloque azul - Información del evento */
         .event-info {
             background: #e3f2fd;
             border: 1px solid #bbdefb;
@@ -188,34 +174,11 @@
             min-height: 60px;
         }
         
-        .event-time {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 500;
-        }
+        .event-time { font-size: 0.8rem; color: #666; margin-bottom: 4px; font-weight: 500; }
+        .event-teams { font-size: 0.85rem; color: #333; line-height: 1.3; font-weight: 500; }
         
-        .event-teams {
-            font-size: 0.85rem;
-            color: #333;
-            line-height: 1.3;
-            font-weight: 500;
-        }
-        
-        /* Cuotas de apuestas */
-        .market-group {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        
-        .odds-row {
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            height: 100%;
-            width: 100%;
-        }
+        .market-group { display: flex; flex-direction: column; justify-content: center; }
+        .odds-row { display: flex; gap: 6px; justify-content: center; height: 100%; width: 100%; }
         
         .odd-btn {
             background: white;
@@ -241,7 +204,6 @@
             box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
         }
         
-        /* ESTILO DE CUOTA SUPER SEGURA */
         .odd-btn.safest {
             border: 2px solid #28a745;
             background: #f0fdf4;
@@ -253,7 +215,6 @@
             font-size: 1.2rem;
         }
         
-        /* SELECCIÓN */
         .odd-btn.selected {
             background: #2c5aa0 !important;
             color: white !important;
@@ -263,9 +224,7 @@
 
         .odd-btn.selected .odd-value,
         .odd-btn.selected .odd-label,
-        .odd-btn.selected .odd-label span {
-            color: white !important;
-        }
+        .odd-btn.selected .odd-label span { color: white !important; }
 
         .odd-btn.selected .super-segura-badge {
             background: #1e3a5f !important;
@@ -299,106 +258,24 @@
             border-color: #ddd;
         }
         
-        .odd-value {
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 2px;
-            transition: color 0.2s;
-        }
-        
-        .odd-label {
-            font-size: 0.75rem;
-            line-height: 1.2;
-            text-align: center;
-        }
+        .odd-value { font-weight: bold; font-size: 0.9rem; margin-bottom: 2px; transition: color 0.2s; }
+        .odd-label { font-size: 0.75rem; line-height: 1.2; text-align: center; }
 
-        /* Modal del Ticket */
-        .ticket-modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        
-        .ticket-modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
-            padding: 0;
-            border: none;
-            width: 90%;
-            max-width: 600px;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            display: flex;
-            flex-direction: column;
-            max-height: 85vh;
-        }
-        
-        .ticket-header {
-            background: #2c5aa0;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px 8px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .ticket-close {
-            color: white;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .ticket-body {
-            padding: 20px;
-            background: #f8f9fa;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .ticket-footer {
-            background: white;
-            padding: 20px;
-            border-top: 1px solid #e9ecef;
-            border-radius: 0 0 8px 8px;
-        }
-        
-        .ticket-actions-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        
+        .ticket-modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .ticket-modal-content { background-color: #fefefe; margin: 5% auto; padding: 0; border: none; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; max-height: 85vh;}
+        .ticket-header { background: #2c5aa0; color: white; padding: 15px 20px; border-radius: 8px 8px 0 0; display: flex; justify-content: space-between; align-items: center; }
+        .ticket-close { color: white; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .ticket-body { padding: 20px; background: #f8f9fa; overflow-y: auto; flex: 1; }
+        .ticket-footer { background: white; padding: 20px; border-top: 1px solid #e9ecef; border-radius: 0 0 8px 8px; }
+        .ticket-actions-section { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .ticket-total { font-weight: bold; color: #333; }
         .ticket-actions { display: flex; gap: 10px; }
-        
-        .btn-clear {
-            background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;
-        }
-        .btn-bet {
-            background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600;
-        }
-
-        .ticket-code-section {
-            margin-top: 20px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;
-        }
-        
-        .ticket-code-display {
-            background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 25px; cursor: pointer; text-align: center;
-        }
-        
-        #generatedCode {
-            font-size: 2.8rem; font-weight: bold; color: #333; letter-spacing: 4px; display: block; margin-bottom: 8px;
-        }
-
-        .loading, .error { text-align: center; padding: 40px; color: #666; font-size: 1.1rem; }
+        .btn-clear { background: #6c757d; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-bet { background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .ticket-code-section { margin-top: 20px; padding: 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; }
+        .ticket-code-display { background: rgba(255, 255, 255, 0.95); border-radius: 12px; padding: 25px; cursor: pointer; text-align: center; }
+        #generatedCode { font-size: 2.8rem; font-weight: bold; color: #333; letter-spacing: 4px; display: block; margin-bottom: 8px; }
+        .loading, .error { text-align: center; padding: 40px; color: #666; font-size: 1.1rem; font-weight: bold; }
         
         @media (max-width: 768px) {
             .navbar { display: none !important; }
@@ -418,6 +295,10 @@
                 <button class="filter-btn magic-btn" onclick="generate30SafestCode(this, 'asc')">30 cuotas más bajas</button>
                 <button class="filter-btn magic-btn-high" onclick="generate30SafestCode(this, 'desc')">30 cuotas más altas</button>
             </div>
+            
+            <div style="text-align: center; margin: 10px 0; color: blue; font-weight: bold;">
+                Eventos sincronizados ( Futbol, Basquet y Beisbol )
+            </div>
         </div>
         
         <div class="navbar">
@@ -428,7 +309,7 @@
         </div>
         
         <div id="content" class="content">
-            <div class="loading">Cargando eventos multideporte...</div>
+            <div class="loading">Cargando eventos multideporte y escaneando mercados ocultos...</div>
         </div>
     </div>
 
@@ -465,61 +346,54 @@
         let allEventsData = null;
         let ticketSelections = [];
 
-        // NUEVA FUNCIÓN INTELIGENTE: Verifica si la cuota es realmente segura
-        // Requiere que la cuota tenga al menos 0.10 de diferencia con la segunda más baja del mismo mercado
-        function getSafestValidOdd(eventData, marketsData, oddsData) {
-            let lowestOdd = null;
-            let lowestMarket = null;
-            let minPrice = 999999;
+        window.eventDict = {};
+        window.marketDict = {};
+        window.oddDict = {};
+        window.sportDict = {};
+        window.champDict = {};
+        window.catDict = {};
 
+        // TU LÓGICA EXACTA Y MATEMÁTICA
+        function getSafestValidOdd(eventData) {
+            let allEventOdds = []; // Licuadora de TODAS las cuotas
+
+            // Metemos todas las cuotas de este evento a la licuadora
             if (eventData.marketIds && eventData.marketIds.length > 0) {
                 eventData.marketIds.forEach(mId => {
-                    const m = marketsData.find(x => x.id === mId);
-                    if (m && m.oddIds && m.oddIds.length > 0) {
-                        let marketOdds = [];
+                    const m = window.marketDict[mId];
+                    if (m) {
+                        // Aplastar los desktopOddIds para no pelar ninguna cuota escondida
+                        let currentOddIds = m.oddIds || (m.desktopOddIds ? m.desktopOddIds.flat() : []);
                         
-                        m.oddIds.forEach(oId => {
-                            const o = oddsData.find(x => x.id === oId);
-                            // Solo considerar cuotas válidas (mayores a 1.00)
-                            if (o && o.price > 1.00) {
-                                marketOdds.push(o);
+                        currentOddIds.forEach(oId => {
+                            const o = window.oddDict[oId];
+                            if (o && o.price > 1.00 && (o.oddStatus === 0 || o.oddStatus === undefined)) {
+                                allEventOdds.push({ odd: o, market: m });
                             }
                         });
-
-                        // Ordenar las cuotas de este mercado de menor a mayor
-                        marketOdds.sort((a, b) => a.price - b.price);
-
-                        let isValidMarket = false;
-                        
-                        // Si hay 2 o más opciones, validar la diferencia de 0.10
-                        if (marketOdds.length >= 2) {
-                            if ((marketOdds[1].price - marketOdds[0].price) >= 0.10) { // VALIDACION DE CUOTA SEGURA 0.10
-                                isValidMarket = true;
-                            }
-                        } else if (marketOdds.length === 1) {
-                            // Si por alguna razón solo hay 1 opción válida, la aceptamos
-                            isValidMarket = true;
-                        }
-
-                        // Si el mercado es válido y su cuota más baja es el mínimo global de todo el partido
-                        if (isValidMarket && marketOdds.length > 0) {
-                            if (marketOdds[0].price < minPrice) {
-                                minPrice = marketOdds[0].price;
-                                lowestOdd = marketOdds[0];
-                                lowestMarket = m;
-                            }
-                        }
                     }
                 });
             }
-            
-            if (lowestOdd) {
-                return { odd: lowestOdd, market: lowestMarket };
+
+            if (allEventOdds.length === 0) return null;
+
+            // ORDENAMOS TODAS LAS CUOTAS DEL EVENTO DE MENOR A MAYOR
+            allEventOdds.sort((a, b) => a.odd.price - b.odd.price);
+
+            if (allEventOdds.length === 1) return allEventOdds[0]; // Raro, pero si hay solo una, pasa.
+
+            // EXTRAEMOS LA #1 Y LA #2
+            const lowest1 = allEventOdds[0];
+            const lowest2 = allEventOdds[1];
+
+            // TU REGLA: Si hay una diferencia de 0.10 hacia la otra, pasa. Si no, chao.
+            if ((lowest2.odd.price - lowest1.odd.price) >= 0.10) {
+                return lowest1;
+            } else {
+                return null;
             }
-            return null; // Si no hay ningún mercado válido, retorna null
         }
 
-        // EL BOTON MAGICO (Maneja orden ascendente y descendente y luego ordena cronológicamente)
         async function generate30SafestCode(btnElement, sortOrder) {
             const originalText = btnElement.textContent;
             btnElement.textContent = 'Procesando...';
@@ -532,15 +406,15 @@
 
                 let allSafestOdds = [];
 
-                // 1. RECORRER SOLO LAS FECHAS VALIDAS Y EXTRAER LA CUOTA SEGURA
+                // RECORRER LAS FECHAS AL INSTANTE
                 allEventsData.dates.forEach(dateGroup => {
                     const eventIds = dateGroup.eventIds || [];
-                    eventIds.forEach(eventId => {
-                        const eventData = allEventsData.events.find(e => e.id == eventId);
-                        if (!eventData) return;
+                    for (let i = 0; i < eventIds.length; i++) {
+                        const eventId = eventIds[i];
+                        const eventData = window.eventDict[eventId];
+                        if (!eventData) continue;
                         
-                        // Usamos la nueva lógica inteligente de 0.10 de diferencia
-                        const safestData = getSafestValidOdd(eventData, allEventsData.markets, allEventsData.odds);
+                        const safestData = getSafestValidOdd(eventData);
 
                         if (safestData) {
                             const lowestOdd = safestData.odd;
@@ -569,15 +443,12 @@
                                 sportMarketId: lowestMarket.sportMarketId || 70472
                             });
                         }
-                    });
+                    }
                 });
 
-                // 2. ORDENAR TODA LA LISTA DE MENOR A MAYOR SIEMPRE
                 allSafestOdds.sort((a, b) => a.numericPrice - b.numericPrice);
 
                 let top30 = [];
-                
-                // 3. EXTRAER LOS 30 SEGÚN EL BOTÓN QUE TOCÓ EL USUARIO
                 if (sortOrder === 'asc') {
                     top30 = allSafestOdds.slice(0, 30);
                 } else {
@@ -585,24 +456,20 @@
                 }
 
                 if (top30.length === 0) {
-                    throw new Error('No se encontraron cuotas seguras (diferencia mínima de 0.10)');
+                    throw new Error('No hay partidos con ventaja clara (diferencia mínima 0.10)');
                 }
 
-                // 4. ORDENAR LOS 30 ELEGIDOS CRONOLÓGICAMENTE
                 top30.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
-                // Actualizar el ticket visual
                 ticketSelections = [...top30];
                 syncAllButtonsUI();
                 updateTicketDisplay();
 
-                // Armar el payload
                 const selectionsPayload = top30.map((item, idx) => {
-                    const realEvent = allEventsData.events.find(e => e.id == item.eventId);
-                    
-                    const sportObj = allEventsData.sports?.find(s => s.id === realEvent?.sportId);
-                    const champObj = allEventsData.championships?.find(c => c.id === realEvent?.champId);
-                    const catObj = allEventsData.categories?.find(c => c.id === realEvent?.catId);
+                    const realEvent = window.eventDict[item.eventId];
+                    const sportObj = window.sportDict[realEvent?.sportId];
+                    const champObj = window.champDict[realEvent?.champId];
+                    const catObj = window.catDict[realEvent?.catId];
 
                     return {
                         odd: {
@@ -706,7 +573,7 @@
                     body: JSON.stringify(betData)
                 });
                 
-                if (!response.ok) throw new Error('Error de validación en el servidor');
+                if (!response.ok) throw new Error('Error en el servidor al generar código');
                 
                 const result = await response.json();
                 const code = result.apiResponse?.Result?.ReservationKey || 'N/A';
@@ -735,16 +602,15 @@
 
             } catch (e) {
                 console.error(e);
-                btnElement.textContent = 'Falló la generación';
+                btnElement.textContent = 'Falló';
                 setTimeout(() => {
                     btnElement.textContent = originalText;
                     btnElement.disabled = false;
                 }, 3000);
-                alert('Error al generar: ' + e.message);
+                alert('Aviso: ' + e.message);
             }
         }
 
-        // Delegación de eventos para clics manuales
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.odd-btn');
             if (!btn || btn.classList.contains('disabled')) return;
@@ -762,7 +628,7 @@
             const marketTypeId = btn.getAttribute('data-market-type-id');
             const sportMarketId = btn.getAttribute('data-sport-market-id');
             
-            const eventData = allEventsData.events.find(ev => ev.id == eventId);
+            const eventData = window.eventDict[eventId];
             const isCurrentlySelected = btn.classList.contains('selected');
 
             ticketSelections = ticketSelections.filter(item => item.eventId !== eventId);
@@ -792,7 +658,6 @@
                     sportMarketId: sportMarketId
                 });
 
-                // Ordenar ticket manual cronológicamente también
                 ticketSelections.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
             }
 
@@ -800,9 +665,9 @@
             updateTicketDisplay();
         });
 
+        // CARGA INICIAL
         async function loadEvents() {
             const content = document.getElementById('content');
-            content.innerHTML = '<div class="loading">Cargando la cartelera global...</div>';
             
             try {
                 const response = await fetch('/api/top-events');
@@ -810,6 +675,15 @@
                 
                 const data = await response.json();
                 allEventsData = data; 
+                
+                // Diccionarios en memoria (O(1))
+                if(data.events) data.events.forEach(e => window.eventDict[e.id] = e);
+                if(data.markets) data.markets.forEach(m => window.marketDict[m.id] = m);
+                if(data.odds) data.odds.forEach(o => window.oddDict[o.id] = o);
+                if(data.sports) data.sports.forEach(s => window.sportDict[s.id] = s);
+                if(data.championships) data.championships.forEach(c => window.champDict[c.id] = c);
+                if(data.categories) data.categories.forEach(c => window.catDict[c.id] = c);
+
                 renderEvents(data);
                 
             } catch (error) {
@@ -845,15 +719,13 @@
             
             data.dates.forEach(dateGroup => {
                 const eventIds = dateGroup.eventIds || [];
-                eventIds.forEach(eventId => {
-                    const eventData = data.events.find(e => e.id == eventId);
-                    if (!eventData) return;
+                for (let i = 0; i < eventIds.length; i++) {
+                    const eventId = eventIds[i];
+                    const eventData = window.eventDict[eventId];
+                    if (!eventData) continue;
 
-                    // Usamos la lógica inteligente para renderizar
-                    const safestData = getSafestValidOdd(eventData, data.markets, data.odds);
-
-                    // Si no hay cuota segura (ninguna tiene diff >= 0.10), el partido se oculta
-                    if (!safestData) return; 
+                    const safestData = getSafestValidOdd(eventData);
+                    if (!safestData) continue; 
 
                     activeEventsCount++; 
 
@@ -865,7 +737,6 @@
                     let homeTeam = teams[0] || 'Local';
                     let awayTeam = teams[1] || '';
 
-                    // HORA VENEZUELA INYECTADA Y CORREGIDA
                     let timeStr = '';
                     if (eventData.startDate) {
                         let dateString = eventData.startDate;
@@ -877,8 +748,8 @@
                                   eventDate.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true });
                     }
 
-                    const sportObj = data.sports?.find(s => s.id === eventData.sportId);
-                    const champObj = data.championships?.find(c => c.id === eventData.champId);
+                    const sportObj = window.sportDict[eventData.sportId];
+                    const champObj = window.champDict[eventData.champId];
                     
                     const sportName = sportObj?.name || eventData.sport?.name || '';
                     const champName = champObj?.name || eventData.championship?.name || eventData.category?.name || '';
@@ -925,7 +796,7 @@
                              </button>`;
                     
                     html += `</div></div></div>`;
-                });
+                }
             });
 
             html += '</div>';
@@ -959,16 +830,10 @@
 
             let html = '';
             ticketSelections.forEach(item => {
-                let dateStr = '';
-                if(item.startDate){
-                    let dateString = item.startDate;
-                    if (!dateString.endsWith('Z') && !dateString.includes('+') && !dateString.includes('-')) {
-                        dateString += 'Z';
-                    }
-                    const eventDate = new Date(dateString);
-                    dateStr = eventDate.toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
-                              eventDate.toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true });
-                }
+                const dateStr = item.startDate ? 
+                    new Date(item.startDate).toLocaleDateString('es-VE', { timeZone: 'America/Caracas', day: '2-digit', month: '2-digit' }) + ' ' +
+                    new Date(item.startDate).toLocaleTimeString('es-VE', { timeZone: 'America/Caracas', hour: '2-digit', minute: '2-digit', hour12: true }) 
+                    : '';
                 
                 html += `
                     <div style="background:white; border:1px solid #e9ecef; border-radius:6px; padding:15px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
@@ -1077,7 +942,7 @@
             for (const eventId of eventIds) {
                 const eventData = data.events?.find(e => e.id == eventId);
                 if (eventData) {
-                    const safestData = getSafestValidOdd(eventData, data.markets, data.odds);
+                    const safestData = getSafestValidOdd(eventData);
                     if (safestData) {
                         eventsWithOdds.push({ id: eventId, lowestOdd: safestData.odd.price });
                     } else {
@@ -1102,7 +967,6 @@
             if (event.target === document.getElementById('ticketModal')) closeTicketModal();
         }
 
-        // GENERACIÓN DE TICKET MANUAL CON ESTRUCTURA DEL CÓDIGO VIEJO
         async function placeBet() {
             if (ticketSelections.length === 0) return alert('No hay apuestas en tu ticket');
             
@@ -1112,15 +976,13 @@
             btn.disabled = true;
 
             try {
-                // Re-ordenamos cronológicamente aquí también por seguridad antes de mandarlo
                 ticketSelections.sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
 
                 const selectionsPayload = ticketSelections.map((item, idx) => {
-                    const realEvent = allEventsData?.events?.find(e => e.id == item.eventId);
-                    
-                    const sportObj = allEventsData.sports?.find(s => s.id === realEvent?.sportId);
-                    const champObj = allEventsData.championships?.find(c => c.id === realEvent?.champId);
-                    const catObj = allEventsData.categories?.find(c => c.id === realEvent?.catId);
+                    const realEvent = window.eventDict[item.eventId];
+                    const sportObj = window.sportDict[realEvent?.sportId];
+                    const champObj = window.champDict[realEvent?.champId];
+                    const catObj = window.catDict[realEvent?.catId];
 
                     return {
                         odd: {
@@ -1224,10 +1086,22 @@
                     body: JSON.stringify(betData)
                 });
                 
-                if (!response.ok) throw new Error('Error en el servidor principal al validar tu código');
+                if (!response.ok) throw new Error('Error en el servidor al generar código');
                 
                 const result = await response.json();
                 const code = result.apiResponse?.Result?.ReservationKey || 'N/A';
+                
+                if (code === 'N/A') throw new Error('El servidor no devolvió código');
+
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(code);
+                } else {
+                    fallbackCopyTextToClipboard(code);
+                }
+
+                btn.textContent = '¡Copiado: ' + code + '!';
+                btn.style.background = '#28a745';
+                btn.style.borderColor = '#28a745';
                 
                 document.getElementById('generatedCode').textContent = code;
                 document.getElementById('ticketCodeSection').style.display = 'block';
@@ -1236,8 +1110,12 @@
             } catch (e) {
                 alert('Error al generar código: ' + e.message);
             } finally {
-                btn.textContent = orig;
-                btn.disabled = false;
+                setTimeout(() => {
+                    btn.textContent = orig;
+                    btn.style.background = '';
+                    btn.style.borderColor = '';
+                    btn.disabled = false;
+                }, 3000);
             }
         }
 
@@ -1256,9 +1134,7 @@
                     hint.style.color = '#28a745';
                     setTimeout(() => { hint.textContent = 'Haz clic para copiar'; hint.style.color = '#666'; }, 2000);
                 }
-            } catch (err) {
-                console.error('Fallback: Oops, unable to copy', err);
-            }
+            } catch (err) {}
             document.body.removeChild(textArea);
         }
 
