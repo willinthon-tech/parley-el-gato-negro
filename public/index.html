@@ -387,7 +387,7 @@
             const lowest2 = allEventOdds[1];
 
             // TU REGLA: Si hay una diferencia de 0.10 hacia la otra, pasa. Si no, chao.
-            if ((lowest2.odd.price - lowest1.odd.price) >= 0.10) {
+            if ((lowest2.odd.price - lowest1.odd.price) >= 0.30) {
                 return lowest1;
             } else {
                 return null;
